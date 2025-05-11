@@ -120,16 +120,12 @@ document.getElementById("backBtn").onclick = function () {
 };
 
 function InSettings() {
-    if (inSettings) {
-        if (KEY_ESCAPE) {
+    if (inSettings && KEY_ESCAPE) {
             document.getElementById("volumeMenu").classList.add("hidden");
             inSettings = false;
-
-            // Clear the interval when exiting settings
             clearInterval(settingsInterval);
-        }
-    }
-}
+        }}
+
 document.getElementById("startBtn").onclick = function () {
     document.getElementById("MainMenu").classList.add("hidden");
     document.getElementById("canvas").style.filter = "none";
@@ -174,8 +170,7 @@ function createUfos() {
     }}
 
 function createShots() {
-    if (gameRunning) {
-        if (KEY_SPACE) {
+    if (gameRunning && KEY_SPACE) {
             laserSound.play();
             let shot = {
                 x: player.x + player.width,
@@ -188,7 +183,7 @@ function createShots() {
             };
             shot.img.src = shot.src;
             shots.push(shot);
-}}}
+}}
         
 
 

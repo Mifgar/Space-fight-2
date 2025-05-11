@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Space fight</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      background-color: #080808;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: row;
+      height: 98vh;
+    }
+
+    .box {
+      position: absolute;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #101010;
+      overflow: show;
+    }
+
+
+    #startButton {
+      background-image: url("../img/start\ game.png");
+      /* Set the background image of the button*/
+      background-size: cover;
+      /* Set the background image to cover the entire button*/
+      background-position: center center;
+      /* Center the background image*/
+      background-color: transparent;
+      filter: brightness(70%);
+      width: 181px;
+      /* Set the width of the button*/
+      height: 61.2px;
+      /* Set the height of the button*/
+      position: absolute;
+      /* Position the button absolutely*/
+      bottom: -60px;
+      /* Move the button up by 20 pixels from the bottom of the box*/
+    }
+
+    #startButton:hover {
+      filter: brightness(100%) drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.5));
+    }
+
+    #score {
+      position: absolute;
+      top: -20px;
+      left: 20px;
+      color: rgb(2, 252, 6);
+      text-align: right;
+      font-size: 32px;
+      z-index: 2;
+    }
+
+    .main-menu {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+
+    .menu {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .menu button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #464646;
+      color: #fff;
+      cursor: pointer;
+      z-index: 1;
+
+    }
+
+    #volumeButton {
+      background-image: url("../img/Volume.png");
+      /* Set the background image of the button*/
+      background-size: cover;
+      /* Set the background image to cover the entire button*/
+      background-position: center center;
+      /* Center the background image*/
+      background-color: transparent;
+      filter: brightness(70%);
+      width: 181px;
+      /* Set the width of the button*/
+      height: 61.2px;
+      /* Set the height of the button*/
+      position: absolute;
+      /* Position the button absolutely*/
+      bottom: 0px;
+      /* Move the button up by 20 pixels from the bottom of the box*/
+    }
+
+    #volumeButton:hover {
+      filter: brightness(100%) drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.5));
+    }
+
+    .volume-menu {
+      width: 600px;
+      height: 600px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      border-radius: 5px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 2;
+      transform: translate(-50%, -50%);
+      box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.2);
+      background: #151b2b;
+      overflow: hidden;
+    }
+
+    .volume-menu button {
+      margin: 10px;
+      position: relative;
+      top: 0;
+      left: 0;
+    }
+
+    #backButton {
+      background-image: url("../img/back_arrow.png");
+      /* Set the background image of the button*/
+      background-size: cover;
+      /* Set the background image to cover the entire button*/
+      background-position: center center;
+      /* Center the background image*/
+      background-color: transparent;
+      filter: brightness(70%);
+      width: 61px;
+      /* Set the width of the button*/
+      height: 46.92px;
+      /* Set the height of the button*/
+      position: absolute;
+      /* Position the button absolutely*/
+      border: none;
+    }
+
+    #backButton:hover {
+      filter: brightness(90%) drop-shadow(0px 5px 5px rgba(0. 0, 0, 0.5));
+    }
+
+    .VolumeMenuContent {
+      display: flex;
+      position: relative;
+      margin-top: 35px;
+      flex-direction: column;
+    }
+
+    .VolumeMenuContent p {
+      margin-top: 25px;
+      margin-bottom: 5px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .button-Layout {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 1200px;
+      height: 800px;
+      position: absolute;
+    }
+
+    #SoundMuteButton {
+      background-image: url("../img/Sound1.png");
+      /* Set the background image of the button*/
+      background-size: cover;
+      /* Set the background image to cover the entire button*/
+      background-position: center center;
+      /* Center the background image*/
+      background-color: transparent;
+      z-index: 2;
+      position: absolute;
+      top: 14px;
+      right: 95px;
+      width: 37.8px;
+      height: 32.4px;
+      border: none;
+      filter: invert();
+    }
+
+    #HandyMenuButton {
+      background-image: url("../img/Einstellung\ icon.png");
+      /* Set the background image of the button*/
+      background-size: cover;
+      /* Set the background image to cover the entire button*/
+      background-position: center center;
+      /* Center the background image*/
+      background-color: transparent;
+      z-index: 2;
+      position: absolute;
+      top: 10px;
+      right: 50px;
+      width: 40px;
+      height: 40px;
+      border: none;
+    }
+
+    #FullscreenButton {
+      background-image: url("../img/FullscreenButton.png");
+      /* Set the background image of the button*/
+      background-size: cover;
+      /* Set the background image to cover the entire button*/
+      background-position: center center;
+      /* Center the background image*/
+      background-color: transparent;
+      z-index: 2;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      filter: invert();
+    }
+
+    :fullscreen {
+      background-color: black;
+      display: flex;
+      justify-content: center;
+
+
+    }
+
+    /* Handy */
+
+    #Handy_Oben {
+      position: absolute;
+      top: 0;
+      height: 50%;
+      width: 100%;
+      opacity: 0.1;
+      z-index: 1;
+      display: none;
+      animation: blink 4s ease forwards;
+    }
+
+    #Handy_Unten {
+      position: absolute;
+      bottom: 0;
+      height: 50%;
+      width: 100%;
+      opacity: 0.1;
+      z-Index: 1;
+      display: none;
+      animation: blink 4s ease forwards;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: 0.1;
+        scale: 1;
+      }
+
+      33% {
+        opacity: 0.175;
+        scale: 1.015;
+      }
+
+      66% {
+        opacity: 0.1;
+        scale: 0.985;
+      }
+
+      85% {
+        opacity: 0.1;
+        scale: 1;
+      }
+
+      100% {
+        opacity: 0;
+        scale: 1;
+      }
+    }
+
+    #Handy_shot {
+      background-image: url("../img/handy-shot-button3.png");
+      /* Set the background image of the button*/
+      background-size: cover;
+      /* Set the background image to cover the entire button*/
+      background-position: center center;
+      /* Center the background image*/
+      background-color: transparent;
+      position: absolute;
+      width: 75px;
+      height: 75px;
+      bottom: 25px;
+      right: 25px;
+      z-index: 2;
+      border: none;
+      filter: brightness(50%);
+    }
+
+    #Handy_shot:hover {
+      filter: brightness(80%) drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.5));
+    }
+
+
+
+    @media screen and (max-width: 1200px) {
+      #canvas {
+        width: 800px;
+        height: 400px;
+      }
+
+      .volume-menu {
+        width: 300px;
+        height: 200px;
+      }
+
+      #backButton {
+        width: 45.75px;
+        height: 35.19px;
+      }
+
+      #startButton {
+        width: 135.75px;
+        height: 45, 9px;
+        bottom: -45px;
+      }
+
+      #volumeButton {
+        width: 135.75px;
+        height: 45, 9px;
+      }
+
+      .menu button {
+        margin: 0 7.5px;
+        padding: 7.5px 15px;
+      }
+
+      .button-Layout {
+        width: 800px;
+        height: 400px;
+      }
+
+      #SoundMuteButton {
+        width: 28.35px;
+        height: 24.3px;
+        top: 10.5px;
+        right: 71.25px;
+      }
+
+      #HandyMenuButton {
+        width: 30px;
+        height: 30px;
+        top: 7.5px;
+        right: 37.5px;
+      }
+
+      #FullscreenButton {
+        width: 30px;
+        height: 30px;
+        top: 7.5px;
+        right: 7.5px;
+      }
+
+      #HandyShot {
+        width: 56.25px;
+        height: 56.25px;
+        bottom: 18.75px;
+        right: 18.75px;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      #canvas {
+        width: 400px;
+        height: 200px;
+      }
+
+      .volume-menu {
+        width: 150px;
+        height: 100px;
+      }
+
+      #backButton {
+        width: 30.5px;
+        height: 23.46px;
+      }
+
+      #startButton {
+        width: 90.5px;
+        height: 30.6px;
+        bottom: -30px;
+      }
+
+      #volumeButton {
+        width: 90.5px;
+        height: 30.6px;
+      }
+
+      .menu button {
+        margin: 0 5px;
+        padding: 5px 10px;
+      }
+
+      .button-Layout {
+        width: 400px;
+        height: 200px;
+      }
+
+      #SoundMuteButton {
+        width: 18, 9px;
+        height: 16.2px;
+        top: 7px;
+        right: 46.5px;
+      }
+
+      #HandyMenuButton {
+        width: 20px;
+        height: 20px;
+        top: 5px;
+        right: 25px;
+      }
+
+      #FullscreenButton {
+        width: 20px;
+        height: 20px;
+        top: 5px;
+        right: 5px;
+      }
+
+      #HandyShot {
+        width: 37.5px;
+        height: 37.5px;
+        bottom: 12.5px;
+        right: 12.5px;
+      }
+    }
+
+    .levelred {
+      font-size: 50px;
+      width: 100px;
+      margin: 10px 10%;
+      background: linear-gradient(to top, red 25%, black 26%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .levelblue {
+      font-size: 50px;
+      width: 100px;
+      margin: 10px 10%;
+      background: linear-gradient(to top, red 25%, black 26%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .levelgreen {
+      font-size: 50px;
+      width: 100px;
+      margin: 10px 10%;
+      background: linear-gradient(to top, red 25%, black 26%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+  </style>
+</head>
+
+<body onload="showMainMenu(); MainGame()">
+  <div id="mainMenu" class="main-menu hidden">
+    <div class="menu">
+      <button id="startButton"></button>
+      <button id="volumeButton"></button>
+    </div>
+    <div id="volumeMenu" class="volume-menu hidden">
+      <button id="backButton"></button>
+      <div class="VolumeMenuContent">
+        <p>Music</p>
+        <input id="MainMusicSlider" type="range" min="0" max="0.1" step="0.001" value="0.001">
+        <p>Shot Sound</p>
+        <input id="ShotSoundSlider" type="range" min="0" max="0.1" step="0.001" value="0.001">
+        <p>Menu</p>
+        <input id="MenuSoundSlider" type="range" min="0" max="1" step="0.001" value="0.001">
+      </div>
+    </div>
+    <div class="Evolution_Screen">
+
+    </div>
+    <div class="LevelNumbers">
+      <div class="levelred">0</div>
+      <div class="levelgreen">0</div>
+      <div class="levelblue">0</div>
+    </div>
+  </div>
+  <!-- Handy buttons ↓ -->
+  <div class="button-Layout">
+    <button id="SoundMuteButton"></button>
+    <button id="HandyMenuButton"></button>
+    <button id="FullscreenButton"></button>
+    <button id="Handy_Oben"></button>
+    <button id="Handy_Unten"></button>
+    <button id="Handy_shot"></button>
+  </div>
+  <!-- Handy Buttons ↑ -->
+
+  <canvas id="canvas" width="1200px" height="800px" z-index="0"></canvas>
+  <p id="score" class="hidden"></p>
+  </div>
+
+
+  <script>
+    let abc = 25;
+    function showMainMenu() {
+      document.getElementById("mainMenu").classList.remove("hidden");
+      document.getElementById("canvas").style.filter = "blur(1.5px)";
+      gameRunning = false;
+      /*Button Sounds ↓*/
+      startButton.addEventListener("click", () => {
+        startSound.play()
+      });
+      volumeButton.addEventListener("click", () => {
+        startSound.play()
+      });
+      backButton.addEventListener("click", () => {
+        startSound.play()
+      });
+      /*Button Sounds ↑*/
+
+      document.getElementById("score").classList.add("hidden");
+
+      Handy_Oben.style.display = "none";
+      Handy_Unten.style.display = "none";
+      Handy_shot.style.display = "none";
+
+
+    }
+
+    /*Volume Menu ↓*/
+    document.getElementById("volumeButton").addEventListener("click", function () {
+      document.getElementById("volumeMenu").classList.remove("hidden");
+      Change_Volume = true;
+      setInterval(VolumeON, 1000 / 60);
+    });
+
+    document.getElementById("backButton").addEventListener("click", function () {
+      document.getElementById("volumeMenu").classList.add("hidden");
+      Change_Volume = false;
+    });
+
+    function VolumeON() {
+      if (Change_Volume) {
+        if (KEY_ESCAPE) {
+          document.getElementById("volumeMenu").classList.add("hidden");
+          Change_Volume = false;
+        }
+      };
+    }
+
+    function updateVolume() {
+      Hintergrundmusik.volume = document.getElementById("MainMusicSlider").value;
+      laserSound.volume = document.getElementById("ShotSoundSlider").value;
+      startSound.volume = document.getElementById("MenuSoundSlider").value;
+    }
+    document.getElementById("MainMusicSlider").addEventListener("input", updateVolume);
+    document.getElementById("ShotSoundSlider").addEventListener("input", updateVolume);
+    document.getElementById("MenuSoundSlider").addEventListener("input", updateVolume);
+
+    // Mute Button
+    document.getElementById("SoundMuteButton").addEventListener("click", SoundMute);
+    document.getElementById("SoundMuteButton").addEventListener("touchstart", SoundMute)
+    function SoundMute() {
+      if (SoundOn_Off) {
+        laserSound.volume = 0;
+        Hintergrundmusik.volume = 0;
+        hitSound.volume = 0;
+        startSound.volume = 0;
+        deathSound.volume = 0;
+        SoundOn_Off = false;
+        SoundMuteButton.style.backgroundImage = "url('../img/Mute1.png')";
+      }
+      else {
+        laserSound.volume = 0.1;
+        Hintergrundmusik.volume = 0.02;
+        hitSound.volume = 0.4;
+        startSound.volume = 0.4;
+        deathSound.volume = 0.45;
+        SoundOn_Off = true;
+        SoundMuteButton.style.backgroundImage = "url('../img/Sound1.png')";
+      }
+    }
+
+    /*Volume Menu ↑*/
+
+    window.addEventListener('touchstart', function (event) {
+      if (event.target.id === 'box') {
+        event.preventDefault();
+      }
+    }, { passive: false });
+
+
+
+    function toggleFullscreen() {
+      var elem = document.getElementById("box");
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+          document.msExitFullscreen();
+        }
+      } else {
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { /* Safari */
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE11 */
+          elem.msRequestFullscreen();
+        }
+      }
+    }
+
+    document.getElementById("startButton").onclick = function () {
+      document.getElementById("mainMenu").classList.add("hidden");
+      startGame()
+    }
+
+    /*Variablen ↓*/
+
+    let KEY_SPACE = false; // 32
+    let KEY_UP = false; // 38
+    let KEY_DOWN = false; // 40
+    let KEY_ESCAPE = false; // 27
+    let canvas;
+    let ctx;
+    let gameRunning = false;
+    let backgroundImage = new Image();
+    let score = 90;
+    let Change_Volume = false;
+    let alreadyExecuted = false;
+    let Ufo_Cooldown = 5000;
+    let Ufo_Health = 1
+    let gameStartTime;
+    let PowerUp_Cooldown = 10000;
+    let Shot_Cooldown = 500;
+
+    // Handy Steuerung
+    let Handy_Oben = document.getElementById("Handy_Oben");
+    let Handy_Unten = document.getElementById("Handy_Unten");
+    let Handy_shot = document.getElementById("Handy_shot");
+
+
+    let SoundOn_Off = true;
+    let laserSound = new Audio("sounds/laser.mp3"); laserSound.volume = 0.1;
+    let Hintergrundmusik = new Audio("sounds/Hintergrundmusik.mp3"); Hintergrundmusik.volume = 0.02; // 0.02
+    let hitSound = new Audio("sounds/hit.mp3"); hitSound.volume = 0.4;
+    let deathSound = new Audio("sounds/death.mp3"); deathSound.volume = 0.45;
+    let startSound = new Audio("sounds/Start-Sound.mp3"); startSound.volume = 0.4;
+    let musicOn = true;
+
+
+    let rocket = {
+      x: 50,
+      y: 350,
+      width: 100,
+      height: 50,
+      src: "../img/rocket.png",
+      ShotSpeed_PowerUp: false,
+    };
+
+    let shots = [];
+    let ufos = [];
+    let PowerUps = [];
+
+    /*Variablen ↑*/
+
+
+    /*Steuerung ↓*/
+
+    Handy_Oben.addEventListener("touchstart", function () {
+      KEY_UP = true;
+    });
+    Handy_Oben.addEventListener("touchend", function () {
+      KEY_UP = false;
+    });
+    Handy_Unten.addEventListener("touchstart", function () {
+      KEY_DOWN = true;
+    });
+    Handy_Unten.addEventListener("touchend", function () {
+      KEY_DOWN = false;
+    });
+    Handy_shot.addEventListener("touchstart", function () {
+      KEY_SPACE = true;
+    });
+    Handy_shot.addEventListener("touchend", function () {
+      KEY_SPACE = false;
+    });
+
+    Handy_Oben.addEventListener("mousedown", function () {
+      KEY_UP = true;
+    });
+    Handy_Oben.addEventListener("mouseup", function () {
+      KEY_UP = false;
+    });
+    Handy_Unten.addEventListener("mousedown", function () {
+      KEY_DOWN = true;
+    });
+    Handy_Unten.addEventListener("mouseup", function () {
+      KEY_DOWN = false;
+    });
+    Handy_shot.addEventListener("mousedown", function () {
+      KEY_SPACE = true;
+    });
+    Handy_shot.addEventListener("mouseup", function () {
+      KEY_SPACE = false;
+    });
+
+
+    HandyMenuButton.addEventListener("mousedown", function () {
+      KEY_ESCAPE = true;
+    });
+    HandyMenuButton.addEventListener("mouseup", function () {
+      KEY_ESCAPE = false;
+    });
+
+    HandyMenuButton.addEventListener("touchstart", function () {
+      KEY_ESCAPE = true;
+    });
+    HandyMenuButton.addEventListener("touchend", function () {
+      KEY_ESCAPE = false;
+    });
+
+    document.getElementById("FullscreenButton").addEventListener("click", toggleFullscreen);
+    document.getElementById("FullscreenButton").addEventListener("touchstart", toggleFullscreen);
+
+    document.onkeydown = function (e) {
+      if (e.keyCode == 32) {
+        // Leertaste gedrückt
+        KEY_SPACE = true;
+      }
+
+      if (e.keyCode == 38) {
+        // Nach oben gedrückt
+        KEY_UP = true;
+      }
+      if (e.keyCode == 40) {
+        // Nach unten gedrückt
+        KEY_DOWN = true;
+      }
+      if (e.keyCode == 87) {
+        // Nach oben gedrückt
+        KEY_UP = true;
+      }
+      if (e.keyCode == 83) {
+        // Nach unten gedrückt
+        KEY_DOWN = true;
+      }
+      if (e.keyCode == 27) {
+        // Nach unten losgelassen
+        KEY_ESCAPE = true;
+      }
+    };
+    document.onkeyup = function (e) {
+      if (e.keyCode == 32) {
+        // Leertaste losgelassen
+        KEY_SPACE = false;
+      }
+      if (e.keyCode == 38) {
+        // Nach oben losgelassen
+        KEY_UP = false;
+      }
+      if (e.keyCode == 40) {
+        // Nach unten losgelassen
+        KEY_DOWN = false;
+      }
+      if (e.keyCode == 87) {
+        // Nach oben losgelassen
+        KEY_UP = false;
+      }
+      if (e.keyCode == 83) {
+        // Nach unten losgelassen
+        KEY_DOWN = false;
+      }
+      if (e.keyCode == 27) {
+        // Nach unten losgelassen
+        KEY_ESCAPE = false;
+      }
+    };
+
+    /*Steuerung ↑*/
+
+
+
+    function MainGame() {
+      gameRunning = true
+      canvas = document.getElementById("canvas");
+      ctx = canvas.getContext("2d");
+      Hintergrundmusik.play();
+      loadImages();
+      draw();
+    }
+
+    function startGame() {
+      gameStartTime = Date.now();
+      document.getElementById("canvas").style.filter = "blur(0px)";
+      document.getElementById("score").classList.remove("hidden");
+      gameRunning = true;
+      Handy_Oben.style.display = "block";
+      Handy_Unten.style.display = "block";
+      Handy_shot.style.display = "block";
+      if (!alreadyExecuted) {
+        if (gameRunning) {
+          setInterval(update, 1000 / 25);
+          Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
+          setInterval(updateUfoLife, 1000);
+          setInterval(createPowerUp, PowerUp_Cooldown);
+          setInterval(checkForCollision, 1000 / 25);
+          shot_Interval = setInterval(createShot, Shot_Cooldown);
+
+        }
+        alreadyExecuted = true;
+      }
+    }
+
+    function checkForCollision() {
+      ufos.forEach(function (ufo) {
+        if (
+          rocket.x + rocket.width - 10 > ufo.x &&
+          rocket.y + rocket.height - 10 > ufo.y &&
+          rocket.x - 40 < ufo.x &&
+          rocket.y + 10 < ufo.y + ufo.height
+        ) {
+          ufos = ufos.filter((u) => u != ufo);
+          showMainMenu();
+          deathSound.play();
+          score = 0;
+          Ufo_Health == 0;
+          Ufo_Cooldown = 5000;
+          clearInterval(Ufo_Interval);
+          Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
+        }
+
+        shots.forEach(function (shot) {
+          // Kontrollieren, ob Laser mit Rakete kollidiert
+          if (
+            shot.x + shot.width > ufo.x &&
+            shot.y + shot.height > ufo.y &&
+            shot.x < ufo.x &&
+            shot.y < ufo.y + ufo.height
+
+          ) {
+            ufo.Leben--;
+            hitSound.play();
+            shots = shots.filter((s) => s != shot);
+            if (ufo.Leben <= 0) {
+              ufo.hit = true;
+              ufo.died = true;
+              ufo.img.src = "../boom.png";
+              score += 10;
+              if (score >= 100) {
+                level += 10;
+              }
+              setTimeout(() => {
+                ufos = ufos.filter((u) => u != ufo);
+              }, 200);
+            }
+          }
+        });
+      });
+      PowerUps.forEach(function (PowerUp) {
+        if (
+          rocket.x + rocket.width > PowerUp.x &&
+          rocket.y + rocket.height > PowerUp.y &&
+          rocket.x < PowerUp.x &&
+          rocket.y < PowerUp.y + PowerUp.height
+        ) {
+          PowerUps = PowerUps.filter((u) => u != PowerUp);
+          rocket.ShotSpeed_PowerUp = true;
+        }
+      });
+    };
+
+    function createUfos() {
+      let ufo = {
+        x: 1300,
+        y: Math.random() * 750,
+        width: 100,
+        height: 40,
+        src: "../img/ufo.png",
+        img: new Image(),
+        Leben: Ufo_Health,
+        died: false,
+      };
+      ufo.img.src = ufo.src; // ufo-bild wird geladen
+      ufos.push(ufo);
+      Ufo_Cooldown *= 0.9;
+      if (Ufo_Cooldown < 500) {
+        Ufo_Cooldown = 500
+      }
+      clearInterval(Ufo_Interval);
+      Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
+    }
+
+    function updateUfoLife() {
+      let elapsedTime = Date.now() - gameStartTime;
+      Ufo_Health = Math.floor(1 + Math.log(elapsedTime / 10000)); // Leben der Ufos basierend auf der vergangenen Zeit
+      console.log("Vergangene Zeit in Sekunden: " + elapsedTime / 1000);
+      if (Ufo_Health > 3) {
+        Ufo_Health = 3;
+      }
+    }
+
+
+    function createShot() {
+      if (KEY_SPACE) {
+        laserSound.play();
+        let shot = {
+          x: rocket.width + rocket.x,
+          y: rocket.y + rocket.height / 2,
+          width: 30,
+          height: 3,
+          src: "../img/shot.png",
+          img: new Image(),
+        };
+        shot.img.src = shot.src; // shot-bild wird geladen
+        shots.push(shot);
+      }
+    }
+
+    function createPowerUp() {
+      let PowerUp = {
+        x: 1300,
+        y: Math.random() * 750,
+        width: 50,
+        height: 50,
+        src: "../img/crate.jpg",
+        img: new Image(),
+      };
+      PowerUp.img.src = PowerUp.src; // PowerUp-bild wird geladen
+      PowerUps.push(PowerUp);
+    }
+
+    function updateScore() {
+      document.getElementById("score").innerHTML = "Score: " + score;
+    }
+
+    function deactivateSpeedShot() {
+      rocket.ShotSpeed_PowerUp = false;
+    }
+    function Evolution() {
+      let ExpRequiredPoints = 100
+      if (score >= ExpRequiredPoints) {
+        if (rocket.src = rocket_Red) {
+          let level = 0
+          document.getElementsByClassName(LevelBalkenRED).classList.remove("hidden");
+        }
+        ExpRequiredPoints + 500
+      }
+    }
+
+    function update() {
+      if (gameRunning) {
+
+        if (!rocket.ShotSpeed_PowerUp) {
+          Shot_Cooldown = 500;
+          laserSound.playbackRate = 1.0;
+        }
+        else {
+          Shot_Cooldown = 375;
+          laserSound.playbackRate = 1.5;
+          setTimeout(deactivateSpeedShot, 10000);
+        }
+
+        if (
+          rocket.y >= 0
+        ) {
+          if (KEY_UP) {
+            rocket.y -= 5;
+          }
+        }
+
+        if (
+          rocket.y + rocket.height <= canvas.height
+        ) {
+          if (KEY_DOWN) {
+            rocket.y += 5;
+          }
+        }
+
+        ufos.forEach(function (ufo) {
+          if (!ufo.died) {
+            ufo.x -= 10;
+          }
+        });
+
+        shots.forEach(function (shot) {
+          if (!rocket.ShotSpeed_PowerUp) {
+            shot.x += 15;
+          }
+          else {
+            shot.x += 25;
+          }
+        });
+
+        PowerUps.forEach(function (PowerUp) {
+          PowerUp.x -= 15;
+        });
+
+        if (KEY_ESCAPE) {
+          showMainMenu();
+        }
+        if (score >= 100) {
+          Evolution();
+        }
+      }
+
+    }
+
+
+
+    function loadImages() {
+      backgroundImage.src = "../img/background.png";
+      rocket.img = new Image();
+      rocket.img.src = rocket.src;
+    }
+    function draw() {
+      if (gameRunning) {
+        ctx.drawImage(backgroundImage, 0, 0);
+        ctx.drawImage(rocket.img, rocket.x, rocket.y, rocket.width, rocket.height);
+      }
+
+      ufos.forEach(function (ufo) {
+        ctx.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
+      });
+
+      shots.forEach(function (shot) {
+        ctx.drawImage(shot.img, shot.x, shot.y, shot.width, shot.height);
+      });
+
+      PowerUps.forEach(function (PowerUp) {
+        ctx.drawImage(PowerUp.img, PowerUp.x, PowerUp.y, PowerUp.width, PowerUp.height);
+      });
+
+      updateScore();
+      requestAnimationFrame(draw);
+    }
+
+  </script>
+</body>
+
+</html>

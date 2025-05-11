@@ -1,0 +1,185 @@
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="36" height="48" viewBox="0 0 24 24"><path fill="%23FFF" stroke="%23000" stroke-width="1.5" d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.85a.5.5 0 0 0-.85.35Z"></path></svg>'), auto;
+}
+
+body {
+     background-image: radial-gradient(
+        circle, 
+        rgba(0, 17, 37, 1) 0%,  
+        rgba(0, 17, 37, 1) 25%,      
+        rgba(0, 0, 0, 1) 100%       
+    );
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+}
+
+canvas {
+    width: 100%; 
+    height: auto; 
+    max-width: 1200px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+#score {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: white;
+    font-size: 1.5rem;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+
+
+.MainMenu {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.menu button {
+    margin: 0 10px;
+    padding: 10px 20px;
+    border: none;
+    outline: none;
+    background-color: #464646;
+    color: #fff;
+    z-index: 1;
+}
+
+#startBtn {
+    background-image: url("../img/start\ game.png");
+    background-size: cover;
+    background-position: center center;
+    background-color: transparent;
+    filter: brightness(70%);
+    width: 181px;
+    height: 61.2px;
+    position: absolute;
+    bottom: 40%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+}
+
+#settingsBtn {
+    background-image: url("../img/Volume.png");
+    background-size: cover;
+    background-position: center center;
+    background-color: transparent;
+    filter: brightness(70%);
+    width: 181px;
+    height: 61.2px;
+    position: absolute;
+    bottom: calc(40% + 65px);
+    left: 50%;
+    transform: translate(-50%, 50%);
+}
+
+
+.volume-menu {
+    width: 600px;
+    height: 600px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 5px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.2);
+    background: #151b2b;
+    overflow: hidden;
+}
+
+#backBtn {
+    background-image: url("../img/back_arrow.png");
+    background-size: cover;
+    background-position: center center;
+    background-color: transparent;
+    filter: brightness(70%);
+    width: 61px;
+    height: 46.92px;
+    position: absolute;
+    border: none;
+}
+
+#settingsBtn:hover,
+#startBtn:hover,
+#backBtn:hover {
+    filter: brightness(100%);
+}
+
+
+.hidden {
+    display: none;
+}
+
+.Landscape-advise {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+    canvas {
+        width: 90%;
+    }
+}
+
+/* For portrait orientation */
+@media screen and (orientation: portrait) {
+    body {
+
+        height: 100vh; /* Full height for portrait */
+        overflow: hidden; /* Prevent scrolling */
+    }
+    canvas {
+        width: 100vw;
+        height: auto;
+    }
+    .Landscape-advise {
+        display: block;
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        padding: 1em;
+        top: 20%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 24px;
+        letter-spacing: 2px;
+        font-family: Geneva, Verdana, sans-serif;
+    }
+}
+
+@media screen and (orientation: landscape) and (max-width: 1000px) {
+    body {
+        height: auto;
+    }
+    canvas {
+        width: 80%; /* Take up most of the screen width */
+        height: auto; /* Maintain aspect ratio */
+    }
+}

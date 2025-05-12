@@ -15,20 +15,63 @@
             <button id="settingsBtn"></button>
         </div>
         <div id="volumeMenu" class="volume-menu hidden">
-            <button id="backBtn"></button>
+            <div class="header-row">
+                <button id="backBtn"></button>
+                <h2>Settings</h2>
+            </div>
+
             <div class="VolumeMenuContent">
-                <p>Music</p>
-                <input id="MainMusicSlider" type="range" min="0" max="0.1" step="0.001" value="0.001">
-                <p>Shot Sound</p>
-                <input id="ShotSoundSlider" type="range" min="0" max="0.1" step="0.001" value="0.001">
-                <p>Menu</p>
-                <input id="MenuSoundSlider" type="range" min="0" max="1" step="0.001" value="0.001">
+                <div class="volume-setting">
+                    <p>Music</p>
+                    <input id="MainMusicSlider" type="range" min="0" max="0.1" step="0.001" value="0">
+                    <div id="MusicSlider-value"></div>
+                </div>
+                <div class="volume-setting">
+                    <p>Shot Sound</p>
+                    <input id="ShotSoundSlider" type="range" min="0" max="0.1" step="0.001" value="0">
+                    <div id="ShotSlider-value"></div>
+                </div>
+                <div class="volume-setting">
+                    <p>Menu</p>
+                    <input id="MenuSoundSlider" type="range" min="0" max="1" step="0.001" value="0">
+                    <div id="MenuSlider-value"></div>
+                </div>
             </div>
         </div>
     </div>
     <h2 class="Landscape-advise">For the Best Experience please Rotate your Phone</h2>
     <canvas id="canvas" width="1200px" height="800px" z-index="0"></canvas>
     <p id="score" class="hidden"></p>
+
+    <script>
+        function updateSlider(slider, valueDisplay, color = "orange", bgColor = "#2c2f4a") {
+            const min = parseFloat(slider.min);
+            const max = parseFloat(slider.max);
+            const val = parseFloat(slider.value);
+            const percent = ((val - min) / (max - min)) * 100;
+
+            // Update background fill
+            slider.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, ${bgColor} ${percent}%, ${bgColor} 100%)`;
+
+            // Update displayed value (rounded for better UX)
+            const displayPercent = ((val - min) / (max - min)) * 100;
+            valueDisplay.textContent = Math.round(displayPercent) + "%";
+        }
+
+        // Get all sliders and value displays
+        const MusicSlider = document.getElementById("MainMusicSlider");
+        const ShotSoundSlider = document.getElementById("ShotSoundSlider");
+        const MenuSoundSlider = document.getElementById("MenuSoundSlider");
+
+        const MusicSliderValue = document.getElementById("MusicSlider-value");
+        const ShotSliderValue = document.getElementById("ShotSlider-value");
+        const MenuSliderValue = document.getElementById("MenuSlider-value");
+
+        // Attach input event listeners
+        MusicSlider.addEventListener("input", () => updateSlider(MusicSlider, MusicSliderValue, "#02cac6"));
+        ShotSoundSlider.addEventListener("input", () => updateSlider(ShotSoundSlider, ShotSliderValue, "#02cac6"));
+        MenuSoundSlider.addEventListener("input", () => updateSlider(MenuSoundSlider, MenuSliderValue, "#02cac6"));
+    </script>
 
 
     <script src="script.js"></script>

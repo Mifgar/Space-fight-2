@@ -124,9 +124,17 @@ function InSettings() {
             document.getElementById("volumeMenu").classList.add("hidden");
             inSettings = false;
             clearInterval(settingsInterval);
-        }
+        }}
+*/
+
+function ESCAPE_PRESSED() {
+    if (inSettings) {
+        document.getElementById("volumeMenu").classList.add("hidden");
+        inSettings = false;´
+        console.log("ESCAPE_PRESSED");
     }
 }
+
 document.getElementById("startBtn").onclick = function () {
     document.getElementById("MainMenu").classList.add("hidden");
     document.getElementById("canvas").style.filter = "none";

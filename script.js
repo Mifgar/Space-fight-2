@@ -1,5 +1,5 @@
 let inSettings = false;
-let settingsInterval;
+let alreadyExecuted = false;
 
 let KEY_SPACE = false; // 32
 let KEY_UP = false; // 38
@@ -29,7 +29,7 @@ let musicOn = true;
 
 let player = {
     x: 50,
-    y: 250,
+    y: 350,
     width: 100,
     height: 50,
     src: 'img/rocket.png',
@@ -96,8 +96,6 @@ function showMainMenu() {
     backBtn.addEventListener("click", () => {
         ButtonSound.play();
     });
-
-    document.getElementById("score").classList.add("hidden");
 }
 
 
@@ -105,10 +103,6 @@ function showMainMenu() {
 document.getElementById("settingsBtn").onclick = function () {
     document.getElementById("volumeMenu").classList.remove("hidden");
     inSettings = true;
-    // Clear any existing interval to avoid duplicates
-    clearInterval(settingsInterval);
-    // Set up an interval to repeatedly call InSettings
-    settingsInterval = setInterval(InSettings, 100);
 };
 
 document.getElementById("backBtn").onclick = function () {
@@ -118,36 +112,32 @@ document.getElementById("backBtn").onclick = function () {
     // Clear the interval when exiting settings
     clearInterval(settingsInterval);
 };
-/*
-function InSettings() {
-    if (inSettings && KEY_ESCAPE) {
-            document.getElementById("volumeMenu").classList.add("hidden");
-            inSettings = false;
-            clearInterval(settingsInterval);
-        }}
-*/
 
 function ESCAPE_PRESSED() {
     if (inSettings) {
         document.getElementById("volumeMenu").classList.add("hidden");
         inSettings = false;
     }
+    if (gameRunning) {
+        showMainMenu();
+    }
 }
 
 document.getElementById("startBtn").onclick = function () {
     document.getElementById("MainMenu").classList.add("hidden");
+    document.getElementById("score").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "none";
     gameRunning = true;
     startRound();
 }
 
 function startRound() {
-    if (gameRunning){
+    if (gameRunning && !alreadyExecuted) {
         setInterval(update, 1000 / 25);
         Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
         setInterval(checkCollision, 1000 / 25);
         Shot_Interval = setInterval(createShots, Shot_Cooldown);
-
+        alreadyExecuted = true;
     }}
 
 
@@ -266,7 +256,6 @@ function loadImages() {
 
 
 function draw() {
-    if (gameRunning) {
     ctx.drawImage(backgroundImage, 0, 0);
     ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
     
@@ -276,7 +265,7 @@ function draw() {
     shots.forEach(function (shot) {
         ctx.drawImage(shot.img, shot.x, shot.y, shot.width, shot.height);
     });
-}
+;
     updateScore();
     requestAnimationFrame(draw);
 }

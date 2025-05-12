@@ -52,7 +52,7 @@ document.onkeydown = function (e) {
     }
     if (e.key === "Escape") {
         KEY_ESCAPE = true;
-
+        ESCAPE_PRESSED();
     }
 };
 
@@ -118,13 +118,21 @@ document.getElementById("backBtn").onclick = function () {
     // Clear the interval when exiting settings
     clearInterval(settingsInterval);
 };
-
+/*
 function InSettings() {
     if (inSettings && KEY_ESCAPE) {
             document.getElementById("volumeMenu").classList.add("hidden");
             inSettings = false;
             clearInterval(settingsInterval);
         }}
+*/
+
+function ESCAPE_PRESSED() {
+    if (inSettings) {
+        document.getElementById("volumeMenu").classList.add("hidden");
+        inSettings = false;
+    }
+}
 
 document.getElementById("startBtn").onclick = function () {
     document.getElementById("MainMenu").classList.add("hidden");

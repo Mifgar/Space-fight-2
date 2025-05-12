@@ -130,8 +130,7 @@ function InSettings() {
 function ESCAPE_PRESSED() {
     if (inSettings) {
         document.getElementById("volumeMenu").classList.add("hidden");
-        inSettings = false;´
-        console.log("ESCAPE_PRESSED");
+        inSettings = false;
     }
 }
 

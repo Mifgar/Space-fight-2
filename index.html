@@ -8,71 +8,62 @@
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body onload="startGame(); showMainMenu();">
-    <div class="MainMenu hidden" id="MainMenu">
-        <div class="menu">
-            <button id="startBtn"></button>
-            <button id="settingsBtn"></button>
-        </div>
-        <div id="volumeMenu" class="volume-menu hidden">
-            <div class="header-row">
-                <button id="backBtn"></button>
-                <h2>Settings</h2>
+<body onload="startGame(); showMainMenu(); updateVolume();">
+    <div id="GameScreen">
+        <div class="MainMenu hidden" id="MainMenu">
+            <div class="menu">
+                <button id="startBtn"></button>
+                <button id="settingsBtn"></button>
             </div>
+            <div id="volumeMenu" class="volume-menu hidden">
+                <div class="header-row">
+                    <button id="backBtn"></button>
+                    <h2>Settings</h2>
+                </div>
+                <div class="VolumeMenuContent">
+                    <div class="volume-setting">
+                        <p>Music</p>
+                        <input id="MainMusicSlider" type="range" min="0" max="0.2" step="0.001" value="0.02">
+                        <div id="MusicSlider-value">0%</div>
+                    </div>
+                    <div class="volume-setting">
+                        <p>Shot Sound</p>
+                        <input id="ShotSoundSlider" type="range" min="0" max="0.2" step="0.001" value="0.02">
+                        <div id="ShotSlider-value">0%</div>
+                    </div>
+                    <div class="volume-setting">
+                        <p>Menu</p>
+                        <input id="MenuSoundSlider" type="range" min="0" max="1" step="0.001" value="0.1">
+                        <div id="MenuSlider-value">0%</div>
+                    </div>
+                    <div class="volume-setting">
+                        <div class="MobileLayout">
+                            <p>Mobile Layout</p>
+                            <label class="checkBox">
+                                <input id="MobileLayoutcheck" type="checkbox">
+                                <div class="transition"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <div class="VolumeMenuContent">
-                <div class="volume-setting">
-                    <p>Music</p>
-                    <input id="MainMusicSlider" type="range" min="0" max="0.1" step="0.001" value="0">
-                    <div id="MusicSlider-value"></div>
-                </div>
-                <div class="volume-setting">
-                    <p>Shot Sound</p>
-                    <input id="ShotSoundSlider" type="range" min="0" max="0.1" step="0.001" value="0">
-                    <div id="ShotSlider-value"></div>
-                </div>
-                <div class="volume-setting">
-                    <p>Menu</p>
-                    <input id="MenuSoundSlider" type="range" min="0" max="1" step="0.001" value="0">
-                    <div id="MenuSlider-value"></div>
-                </div>
-            </div>
+        <!-- Handy buttons ↓ -->
+        <div class="button-Layout">
+            <button id="SoundMuteButton"></button>
+            <button id="SettingsButton"></button>
+            <button id="FullscreenButton"></button>
+            <button id="Handy_Oben" class="mobile--layout "></button>
+            <button id="Handy_Unten" class="mobile--layout "></button>
+            <button id="Handy_shot" class="mobile--layout "></button>
         </div>
+        <!-- Handy Buttons ↑ -->
+
+        <h2 class="Landscape-advise">For the Best Experience please Rotate your Phone</h2>
+        <canvas id="canvas" width="1200px" height="800px" z-index="0"></canvas>
+        <p id="score" class="hidden"></p>
     </div>
-    <h2 class="Landscape-advise">For the Best Experience please Rotate your Phone</h2>
-    <canvas id="canvas" width="1200px" height="800px" z-index="0"></canvas>
-    <p id="score" class="hidden"></p>
-
-    <script>
-        function updateSlider(slider, valueDisplay, color = "orange", bgColor = "#2c2f4a") {
-            const min = parseFloat(slider.min);
-            const max = parseFloat(slider.max);
-            const val = parseFloat(slider.value);
-            const percent = ((val - min) / (max - min)) * 100;
-
-            // Update background fill
-            slider.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, ${bgColor} ${percent}%, ${bgColor} 100%)`;
-
-            // Update displayed value (rounded for better UX)
-            const displayPercent = ((val - min) / (max - min)) * 100;
-            valueDisplay.textContent = Math.round(displayPercent) + "%";
-        }
-
-        // Get all sliders and value displays
-        const MusicSlider = document.getElementById("MainMusicSlider");
-        const ShotSoundSlider = document.getElementById("ShotSoundSlider");
-        const MenuSoundSlider = document.getElementById("MenuSoundSlider");
-
-        const MusicSliderValue = document.getElementById("MusicSlider-value");
-        const ShotSliderValue = document.getElementById("ShotSlider-value");
-        const MenuSliderValue = document.getElementById("MenuSlider-value");
-
-        // Attach input event listeners
-        MusicSlider.addEventListener("input", () => updateSlider(MusicSlider, MusicSliderValue, "#02cac6"));
-        ShotSoundSlider.addEventListener("input", () => updateSlider(ShotSoundSlider, ShotSliderValue, "#02cac6"));
-        MenuSoundSlider.addEventListener("input", () => updateSlider(MenuSoundSlider, MenuSliderValue, "#02cac6"));
-    </script>
-
 
     <script src="script.js"></script>
 </body>

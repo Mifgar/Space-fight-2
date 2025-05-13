@@ -25,12 +25,34 @@ body {
     overflow: hidden;
 }
 
+#GameScreen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+         background-image: radial-gradient(
+        circle, 
+        rgba(0, 17, 37, 1) 0%,  
+        rgba(0, 17, 37, 1) 25%,      
+        rgba(0, 0, 0, 1) 100%       
+    )
+}
+#GameScreen:fullscreen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column; /* if needed */
+}
+
 canvas {
     width: 100%; 
     height: auto; 
     max-width: 1200px;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
 }
+
 
 #score {
     position: absolute;
@@ -172,28 +194,27 @@ canvas {
 }
 
 .volume-setting input[type="range"] {
-    flex: 1 1 0;
+    flex: 1;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, .5),
                 0 0 10px 2px rgba(0, 0, 0, .5);
     -webkit-appearance: none;
     background: #2c2f4a;
     border-radius: 5px;
     height: 16px;
-
+    min-width: 100px;
 }
 .volume-setting input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     height: 16px;
     width: 16px;
     transform: rotate(45deg);
-    margin-left: 2px;
     background: #51eeff;
     box-shadow: 2px 2px 10px 5px rgba(0,0,0,.4);
-    transition: transform 0.2s;
+    transition: transform 0.3s;
 }
 .volume-setting input[type="range"]:hover::-webkit-slider-thumb {
-    background: #359ba6;
-    transform: scale(.85);
+    background: #00eeff;
+    transform: scale(.95);
 }
 .volume-setting input[type="range"]::-moz-range-thumb {
     -webkit-appearance: none;
@@ -203,18 +224,70 @@ canvas {
     margin-left: 2px;
     background: #51eeff;
     box-shadow: 2px 2px 10px 5px rgba(0,0,0,.4);
-    transition: transform 0.2s;
+    transition: transform 0.3s;
 }
 .volume-setting input[type="range"]:hover::-moz-range-thumb {
-    background: #359ba6;
-    transform: scale(.85);
+    background: #00eeff;
+    transform: scale(.95);
 }
-
-.volume-setting div {
+#MenuSlider-value {
     font-size: 1.2rem;
     width: 6%;
     text-align: right;
 }
+
+.MobileLayout {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    width: 100%;
+}
+.MobileLayout p {
+    margin-right: 10px;
+    width: 35%;
+    text-align: start;
+    font-size: 1.5rem;
+}
+.checkBox {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid black;
+  border-radius: 5px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0px 0px 0px 2px #fff;
+}
+
+.checkBox div {
+  width: 60px;
+  height: 60px;
+  background-color: #fff;
+  top: -52px;
+  left: -52px;
+  position: absolute;
+  transform: rotateZ(45deg);
+  z-index: 2;
+}
+
+.checkBox input[type=checkbox]:checked + div {
+  left: -10px;
+  top: -10px;
+}
+
+.checkBox input[type=checkbox] {
+  position: absolute;
+  left: 50px;
+  visibility: hidden;
+}
+
+.transition {
+  transition: 0.2s ease;
+}
+
+
+
+
 
 
 #settingsBtn:hover,
@@ -222,6 +295,131 @@ canvas {
 #backBtn:hover {
     filter: brightness(100%);
 }
+
+
+.button-Layout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 1200px;
+    height: 800px;
+    position: absolute;
+}
+
+#SoundMuteButton {
+    background-image: url("../img/Sound1.png");
+    background-size: cover;
+    background-position: center center;
+    background-color: transparent;
+    z-index: 2;
+    position: absolute;
+    top: 14px;
+    right: 95px;
+    width: 37.8px;
+    height: 32.4px;
+    border: none;
+    filter: invert();
+}
+
+#SettingsButton {
+    background-image: url("../img/Einstellung\ icon.png");
+    background-size: cover;
+    background-position: center center;
+    background-color: transparent;
+    z-index: 2;
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    width: 40px;
+    height: 40px;
+    border: none;
+}
+
+#FullscreenButton {
+    background-image: url("../img/FullscreenButton.png");
+    background-size: cover;
+    background-position: center center;
+    background-color: transparent;
+    z-index: 2;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    filter: invert();
+}
+
+
+
+    #Handy_Oben {
+      position: absolute;
+      top: 0;
+      height: 50%;
+      width: 100%;
+      opacity: 0.1;
+      z-index: 1;
+      display: none;
+      animation: blink 4s ease forwards;
+    }
+
+    #Handy_Unten {
+      position: absolute;
+      bottom: 0;
+      height: 50%;
+      width: 100%;
+      opacity: 0.1;
+      z-Index: 1;
+      display: none;
+      animation: blink 4s ease forwards;
+    }
+
+    @keyframes blink {
+      0% {
+        opacity: 0.1;
+        scale: 1;
+      }
+
+      33% {
+        opacity: 0.175;
+        scale: 1.015;
+      }
+
+      66% {
+        opacity: 0.1;
+        scale: 0.985;
+      }
+
+      85% {
+        opacity: 0.1;
+        scale: 1;
+      }
+
+      100% {
+        opacity: 0;
+        scale: 1;
+      }
+    }
+
+    #Handy_shot {
+      background-image: url("../img/handy-shot-button3.png");
+      background-size: cover;
+      background-position: center center;
+      background-color: transparent;
+      position: absolute;
+      width: 75px;
+      height: 75px;
+      bottom: 25px;
+      right: 25px;
+      z-index: 2;
+      border: none;
+      filter: brightness(50%);
+    }
+
+    #Handy_shot:hover {
+      filter: brightness(80%) drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.5));
+    }
+
 
 
 .hidden {
@@ -273,12 +471,24 @@ canvas {
     body {
         height: auto;
     }
+    #GameScreen {
+        width: 100vw;
+        height: 100vh;
+    }
     canvas {
-        width: 80%; /* Take up most of the screen width */
+        width: 90vw; /* Take up most of the screen width */
         height: auto; /* Maintain aspect ratio */
     }
     .volume-menu {
         width: 70%;
         height: 70%;
+    }
+    .button-Layout {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        position: absolute;
     }
 }

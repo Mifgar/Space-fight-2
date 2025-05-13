@@ -1,6 +1,10 @@
 let inSettings = false;
 let alreadyExecuted = false;
 
+let Handy_Oben = document.getElementById("Handy_Oben");
+let Handy_Unten = document.getElementById("Handy_Unten");
+let Handy_shot = document.getElementById("Handy_shot");
+
 let KEY_SPACE = false; // 32
 let KEY_UP = false; // 38
 let KEY_DOWN = false; // 40
@@ -19,7 +23,7 @@ let ShotSpeed = 10;
 let Shot_Cooldown = 500;
 
 // Sounds
-let SoundOn_Off = true;
+let togglesound = true;
 let laserSound = new Audio("sounds/laser.mp3"); laserSound.volume = 0.05;
 let Hintergrundmusik = new Audio("sounds/Hintergrundmusik.mp3"); Hintergrundmusik.volume = 0.02; // 0.02
 let hitSound = new Audio("sounds/hit.mp3"); hitSound.volume = 0.4;
@@ -71,19 +75,62 @@ document.onkeyup = function (e) {
     }
 };
 
+Handy_Oben.addEventListener("touchstart", function () {
+    KEY_UP = true;
+});
+Handy_Oben.addEventListener("touchend", function () {
+    KEY_UP = false;
+});
+Handy_Unten.addEventListener("touchstart", function () {
+    KEY_DOWN = true;
+});
+Handy_Unten.addEventListener("touchend", function () {
+    KEY_DOWN = false;
+});
+Handy_shot.addEventListener("touchstart", function () {
+    KEY_SPACE = true;
+});
+Handy_shot.addEventListener("touchend", function () {
+    KEY_SPACE = false;
+});
+    
+Handy_Oben.addEventListener("mousedown", function () {
+    KEY_UP = true;
+});
+Handy_Oben.addEventListener("mouseup", function () {
+    KEY_UP = false;
+});
+Handy_Unten.addEventListener("mousedown", function () {
+    KEY_DOWN = true;
+});
+Handy_Unten.addEventListener("mouseup", function () {
+    KEY_DOWN = false;
+})
+Handy_shot.addEventListener("mousedown", function () {
+    KEY_SPACE = true;
+})
+Handy_shot.addEventListener("mouseup", function () {
+    KEY_SPACE = false;
+})
+
 function startGame() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
     gameRunning = true;
-    // Hintergrundmusik.play();
+    Hintergrundmusik.play();
     Hintergrundmusik.loop = true;
     loadImages();
     draw();
 }
+
 function showMainMenu() {
     document.getElementById("MainMenu").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "blur(5px)";
     gameRunning = false;
+
+    Handy_Oben.style.display = "none";
+    Handy_Unten.style.display = "none";
+    Handy_shot.style.display = "none";
 
     startBtn.addEventListener("click", () => {
         ButtonSound.play();
@@ -98,8 +145,6 @@ function showMainMenu() {
     });
 }
 
-
-
 document.getElementById("settingsBtn").onclick = function () {
     document.getElementById("volumeMenu").classList.remove("hidden");
     inSettings = true;
@@ -108,20 +153,118 @@ document.getElementById("settingsBtn").onclick = function () {
 document.getElementById("backBtn").onclick = function () {
     document.getElementById("volumeMenu").classList.add("hidden");
     inSettings = false;
-
-    // Clear the interval when exiting settings
-    clearInterval(settingsInterval);
 };
 
 function ESCAPE_PRESSED() {
     if (inSettings) {
         document.getElementById("volumeMenu").classList.add("hidden");
         inSettings = false;
-    }
-    if (gameRunning) {
+        console.log("Settings closed");
+    } else if (gameRunning) {
         showMainMenu();
+        gameRunning = false;
+        console.log("Game closed");
+    } else if (!gameRunning && !inSettings) {
+        console.log("Menu closed");
+        document.getElementById("MainMenu").classList.add("hidden");
+        document.getElementById("score").classList.remove("hidden");
+        document.getElementById("canvas").style.filter = "none";
+        gameRunning = true;
+        startRound();
+    }}
+
+
+
+const MusicSlider = document.getElementById("MainMusicSlider");
+const ShotSoundSlider = document.getElementById("ShotSoundSlider");
+const MenuSoundSlider = document.getElementById("MenuSoundSlider");
+
+const MusicSliderValue = document.getElementById("MusicSlider-value");
+const ShotSliderValue = document.getElementById("ShotSlider-value");
+const MenuSliderValue = document.getElementById("MenuSlider-value");
+
+
+function SliderGradient(slider, valueDisplay, color = "orange", bgColor = "#2c2f4a") {
+    const min = parseFloat(slider.min);
+    const max = parseFloat(slider.max);
+    const val = parseFloat(slider.value);
+    const percent = ((val - min) / (max - min)) * 100;
+    
+    slider.style.background = `linear-gradient(to right, ${color} 0%, ${color} ${percent}%, ${bgColor} ${percent}%, ${bgColor} 100%)`;
+    
+    const displayPercent = ((val - min) / (max - min)) * 100;
+    valueDisplay.textContent = Math.round(displayPercent) + "%";
+}
+    
+
+function updateVolume() {
+    Hintergrundmusik.volume = document.getElementById("MainMusicSlider").value;
+    laserSound.volume = document.getElementById("ShotSoundSlider").value;
+    ButtonSound.volume = document.getElementById("MenuSoundSlider").value;
+
+    SliderGradient(MusicSlider, MusicSliderValue, "#4de2f2");
+    SliderGradient(ShotSoundSlider, ShotSliderValue, "#4de2f2");
+    SliderGradient(MenuSoundSlider, MenuSliderValue, "#4de2f2");
+}
+    MusicSlider.addEventListener("input", updateVolume);
+    ShotSoundSlider.addEventListener("input", updateVolume);
+    MenuSoundSlider.addEventListener("input", updateVolume);
+
+function toggleSound() {
+    if (togglesound) {
+        Hintergrundmusik.muted = true;
+        laserSound.muted = true;
+        ButtonSound.muted = true;
+        hitSound.muted = true;
+        deathSound.muted = true;
+        SoundMuteButton.style.backgroundImage = "url('../img/Mute1.png')";
+        togglesound = false;
+}   else {
+        Hintergrundmusik.muted = false;
+        laserSound.muted = false;
+        ButtonSound.muted = false;
+        hitSound.muted = false;
+        deathSound.muted = false;
+        SoundMuteButton.style.backgroundImage = "url('../img/Sound1.png')";
+        togglesound = true;
+    }}
+SoundMuteButton.onclick = function () {toggleSound()}
+
+document.getElementById("SettingsButton").onclick = function () {
+    showMainMenu();
+    document.getElementById("volumeMenu").classList.remove("hidden");
+    inSettings = true;
+};
+
+
+function toggleFullscreen() {
+    const elem = document.getElementById("GameScreen");
+    if (document.fullscreenElement) {
+        document.exitFullscreen?.();
+        document.webkitExitFullscreen?.();
+        document.msExitFullscreen?.();
+    } else {
+        elem.requestFullscreen?.();
+        elem.webkitRequestFullscreen?.();
+        elem.msRequestFullscreen?.();
     }
 }
+FullscreenButton.onclick = function () {toggleFullscreen()}
+
+MobileLayoutcheck.onclick = function () {
+    const elements = document.getElementsByClassName("mobile--layout");
+    const isVisible = MobileLayoutcheck.checked;
+
+    for (let i = 0; i < elements.length; i++) {
+        if (isVisible) {
+            elements[i].classList.remove("hidden");
+        } else {
+            elements[i].classList.add("hidden");
+        }
+    }
+};
+
+
 
 document.getElementById("startBtn").onclick = function () {
     document.getElementById("MainMenu").classList.add("hidden");
@@ -133,11 +276,15 @@ document.getElementById("startBtn").onclick = function () {
 
 function startRound() {
     if (gameRunning && !alreadyExecuted) {
+        Handy_Oben.style.display = "block";
+        Handy_Unten.style.display = "block";
+        Handy_shot.style.display = "block";
         setInterval(update, 1000 / 25);
         Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
         setInterval(checkCollision, 1000 / 25);
         Shot_Interval = setInterval(createShots, Shot_Cooldown);
         alreadyExecuted = true;
+        
     }}
 
 

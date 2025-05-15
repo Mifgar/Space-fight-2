@@ -352,73 +352,78 @@ canvas {
 
 
 
-    #Handy_Oben {
-      position: absolute;
-      top: 0;
-      height: 50%;
-      width: 100%;
-      opacity: 0.1;
-      z-index: 1;
-      display: none;
-      animation: blink 4s ease forwards;
+#Handy_Oben {
+    position: absolute;
+    top: 0;
+    height: 50%;
+    width: 100%;
+    opacity: 0.1;
+    z-index: 1;
+    display: none;
+}
+
+#Handy_Unten {
+    position: absolute;
+    bottom: 0;
+    height: 50%;
+    width: 100%;
+    opacity: 0.1;
+    z-Index: 1;
+    display: none;
     }
 
-    #Handy_Unten {
-      position: absolute;
-      bottom: 0;
-      height: 50%;
-      width: 100%;
-      opacity: 0.1;
-      z-Index: 1;
-      display: none;
-      animation: blink 4s ease forwards;
-    }
+.blink--effect {
+    animation: blink 1s ease forwards;
+}
 
-    @keyframes blink {
-      0% {
+@keyframes blink {
+    0% {
         opacity: 0.1;
         scale: 1;
-      }
+    }
 
-      33% {
+    33% {
         opacity: 0.175;
         scale: 1.015;
-      }
+    }
 
-      66% {
+    66% {
         opacity: 0.1;
         scale: 0.985;
       }
 
-      85% {
+    85% {
         opacity: 0.1;
         scale: 1;
       }
 
-      100% {
+    100% {
         opacity: 0;
         scale: 1;
       }
     }
 
-    #Handy_shot {
-      background-image: url("../img/handy-shot-button3.png");
-      background-size: cover;
-      background-position: center center;
-      background-color: transparent;
-      position: absolute;
-      width: 75px;
-      height: 75px;
-      bottom: 25px;
-      right: 25px;
-      z-index: 2;
-      border: none;
-      filter: brightness(50%);
-    }
+#Handy_shot {
+    background-image: url("../img/handy-shot-button3.png");
+    background-size: cover;
+    background-position: center center;
+    background-color: transparent;
+    position: absolute;
+    width: 75px;
+    height: 75px;
+    bottom: 25px;
+    right: 25px;
+    z-index: 2;
+    border: none;
+    filter: brightness(50%);
+}
 
-    #Handy_shot:hover {
-      filter: brightness(80%) drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.5));
-    }
+#Handy_shot:hover {
+    filter: brightness(80%) drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.5));
+}
+
+
+
 
 
 
@@ -445,11 +450,19 @@ canvas {
     }
     canvas {
         width: 100vw;
-        height: auto;
+        height: 50%; /* Full height for portrait */
     }
     .volume-menu {
         width: 90%;
         height: 70%;
+    }
+    .button-Layout {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        position: absolute;
     }
     .Landscape-advise {
         display: block;

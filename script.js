@@ -16,11 +16,15 @@ let gameRunning = true;
 let score = 0;
 
 let Ufo_Cooldown = 5000;
-let UfoLeben = 1;
+let UfoHealth = 1;
 let UfoSpeed = 10;
+let UfoHpIncreaseScore = 100;
 
 let ShotSpeed = 10;
 let Shot_Cooldown = 500;
+
+let PowerUp_Cooldown = 10000;
+let lastPowerupState = false;
 
 // Sounds
 let togglesound = true;
@@ -37,12 +41,17 @@ let player = {
     width: 100,
     height: 50,
     src: 'img/rocket.png',
-    leben: 3
+    maxhealth: 3,
+    health: 3,
+    invincible: false,
+    blink: false,
+    powerup: false,
 }
 
 
 let shots = [];
 let ufos = [];
+let powerups = [];
 
 document.onkeydown = function (e) {
     if (e.key === " ") { // Spacebar
@@ -77,41 +86,41 @@ document.onkeyup = function (e) {
 
 Handy_Oben.addEventListener("touchstart", function () {
     KEY_UP = true;
-});
+}, {passive: true});
 Handy_Oben.addEventListener("touchend", function () {
     KEY_UP = false;
-});
+}, {passive: true});
 Handy_Unten.addEventListener("touchstart", function () {
     KEY_DOWN = true;
-});
+}, {passive: true});
 Handy_Unten.addEventListener("touchend", function () {
     KEY_DOWN = false;
-});
+}, {passive: true});
 Handy_shot.addEventListener("touchstart", function () {
     KEY_SPACE = true;
-});
+}, {passive: true});
 Handy_shot.addEventListener("touchend", function () {
     KEY_SPACE = false;
-});
+}, {passive: true});
     
 Handy_Oben.addEventListener("mousedown", function () {
     KEY_UP = true;
-});
+}, {passive: true});
 Handy_Oben.addEventListener("mouseup", function () {
     KEY_UP = false;
-});
+}, {passive: true});
 Handy_Unten.addEventListener("mousedown", function () {
     KEY_DOWN = true;
-});
+}, {passive: true});
 Handy_Unten.addEventListener("mouseup", function () {
     KEY_DOWN = false;
-})
+}, {passive: true});
 Handy_shot.addEventListener("mousedown", function () {
     KEY_SPACE = true;
-})
+}, {passive: true});
 Handy_shot.addEventListener("mouseup", function () {
     KEY_SPACE = false;
-})
+}, {passive: true});
 
 function startGame() {
     canvas = document.getElementById('canvas');
@@ -134,15 +143,15 @@ function showMainMenu() {
 
     startBtn.addEventListener("click", () => {
         ButtonSound.play();
-    });
+    }, {passive: true});
 
     settingsBtn.addEventListener("click", () => {
         ButtonSound.play();
-    });
+    }, {passive: true});
 
     backBtn.addEventListener("click", () => {
         ButtonSound.play();
-    });
+    }, {passive: true});
 }
 
 document.getElementById("settingsBtn").onclick = function () {
@@ -206,9 +215,9 @@ function updateVolume() {
     SliderGradient(ShotSoundSlider, ShotSliderValue, "#4de2f2");
     SliderGradient(MenuSoundSlider, MenuSliderValue, "#4de2f2");
 }
-    MusicSlider.addEventListener("input", updateVolume);
-    ShotSoundSlider.addEventListener("input", updateVolume);
-    MenuSoundSlider.addEventListener("input", updateVolume);
+    MusicSlider.addEventListener("input", updateVolume, {passive: true});
+    ShotSoundSlider.addEventListener("input", updateVolume, {passive: true});
+    MenuSoundSlider.addEventListener("input", updateVolume, {passive: true});
 
 function toggleSound() {
     if (togglesound) {
@@ -271,6 +280,7 @@ document.getElementById("startBtn").onclick = function () {
     document.getElementById("score").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "none";
     gameRunning = true;
+    if (player.health <= 0) {player.health = player.maxhealth}
     startRound();
 }
 
@@ -283,6 +293,7 @@ function startRound() {
         Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
         setInterval(checkCollision, 1000 / 25);
         Shot_Interval = setInterval(createShots, Shot_Cooldown);
+        PowerUp_Interval = setInterval(createPowerup, PowerUp_Cooldown);
         alreadyExecuted = true;
         
     }}
@@ -299,11 +310,18 @@ function createUfos() {
             height: 40,
             src: 'img/ufo.png',
             img: new Image(),
-            leben: UfoLeben,
+            health: UfoHealth,
             speed: Math.random() * (UfoSpeed) + 5 // Random speed between 5 and UfoSpeed + 5
         }
         ufo.img.src = ufo.src;
         ufos.push(ufo);
+
+        if (score >= UfoHpIncreaseScore) {
+            UfoHealth++;
+            UfoHpIncreaseScore *=3;
+            console.log(UfoHealth);
+            console.log(UfoHpIncreaseScore);
+        }
 
         if (Ufo_Cooldown > 500) {
             Ufo_Cooldown *= 0.95; 
@@ -329,10 +347,27 @@ function createShots() {
             shot.img.src = shot.src;
             shots.push(shot);
 }}
+function createPowerup() {
+    if (gameRunning) {
+        let powerup = {
+        x: 1300,
+        y: Math.random() * 750,
+        width: 50,
+        height: 50,
+        src: "../img/crate.jpg",
+        img: new Image(),
+    }
+    powerup.img.src = powerup.src; // PowerUp-bild wird geladen
+    powerups.push(powerup);
+    PowerUp_Cooldown = Math.random() * (PowerUp_Cooldown) + 5000
+    clearInterval(PowerUp_Interval);
+    PowerUp_Interval = setInterval(createPowerup, PowerUp_Cooldown);
+}}
         
 
 
 function checkCollision() {
+    if (!player.invincible) {
     ufos.forEach(function (ufo) {
     if (player.x < ufo.x + ufo.width &&
         player.x + player.width > ufo.x &&
@@ -340,14 +375,30 @@ function checkCollision() {
         player.y + player.height > ufo.y
     ) {
         ufos = ufos.filter((u) => u != ufo);
-        UfoLeben = 0;
-        if (player.leben >= 0) {
+        UfoHealth = 0;
+        player.health--;
+        player.invincible = true;
+        player.blink = true;
+        
+        const blinkInterval = setInterval(() => { // adding a blink animation
+                player.blink = !player.blink;
+        }, 100);
+
+        setTimeout(() => { // adding an short invincibility with animation
+            player.invincible = false;
+            player.blink = false;
+            clearInterval(blinkInterval);
+        }, 1000);
+
+        if (player.health <= 0) {
+            score = 0;
+            ufos = []; // Clears all ufos and ↓ shots
+            shots = [];
             deathSound.play();
             gameRunning = false;
             showMainMenu();
             clearInterval(Ufo_Interval);
             Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
-
       }}
             
         shots.forEach(function (shot) {
@@ -358,10 +409,10 @@ function checkCollision() {
                 shot.y + shot.height > ufo.y
             ) {
                 hitSound.play();
-                ufo.leben--;
+                ufo.health--;
                 score += 10;
-                if (ufo.leben <= 0) {
-                    shots = shots.filter((s) => s != shot);
+                shots = shots.filter((s) => s != shot);
+                if (ufo.health <= 0) {
                     ufo.img.src = "img/boom.png";
                     ufo.speed = 0;
                     setTimeout(() => {
@@ -370,7 +421,22 @@ function checkCollision() {
                 }
             }
         })
-    })};
+        powerups.forEach(function (powerup){
+            
+        if (player.x < powerup.x + powerup.width &&
+            player.x + player.width > powerup.x &&
+            player.y < powerup.y + powerup.height &&
+            player.y + player.height > powerup.y
+    )       {
+            powerups = powerups.filter((p) => p != powerup);
+            player.powerup = true;
+            ShotSpeed *= 1;
+            setTimeout(() => {
+                player.powerup = false;;
+            }, 5000);
+            }
+        })
+})}};
         
 
 
@@ -386,9 +452,25 @@ function update() {
         ufos.forEach(function (ufo) {
             ufo.x -= ufo.speed;
         })
+        if (player.powerup !== lastPowerupState) {
+            clearInterval(Shot_Interval);
+            if (player.powerup) {
+                Shot_Cooldown = 250;
+                laserSound.playbackRate = 2;
+            } else {
+                Shot_Cooldown = 500;
+                laserSound.playbackRate = 1;
+                ShotSpeed = 10;
+            }
+            Shot_Interval = setInterval(createShots, Shot_Cooldown);
+            lastPowerupState = player.powerup; // On Off Switch lastPowerupState is Negative to the powerup 
+        }
         shots.forEach(function (shot) {
-            shot.x += shot.speed;
+                shot.x += shot.speed;
         })
+        powerups.forEach(function (powerup) {
+          powerup.x -= 15;
+        });
 }}
 
 function updateScore() {
@@ -404,7 +486,7 @@ function loadImages() {
 
 function draw() {
     ctx.drawImage(backgroundImage, 0, 0);
-    ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
+
     
     ufos.forEach(function (ufo) {
         ctx.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.height);
@@ -412,7 +494,13 @@ function draw() {
     shots.forEach(function (shot) {
         ctx.drawImage(shot.img, shot.x, shot.y, shot.width, shot.height);
     });
-;
+    powerups.forEach(function (powerup) {
+        ctx.drawImage(powerup.img, powerup.x, powerup.y, powerup.width, powerup.height);
+    });
+
     updateScore();
     requestAnimationFrame(draw);
+
+    if (player.invincible && player.blink) return;
+    ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
 }

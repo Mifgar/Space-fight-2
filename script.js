@@ -315,12 +315,9 @@ function createUfos() {
         }
         ufo.img.src = ufo.src;
         ufos.push(ufo);
-
-        if (score >= UfoHpIncreaseScore) {
+        while (score >= UfoHpIncreaseScore) {
             UfoHealth++;
             UfoHpIncreaseScore *=3;
-            console.log(UfoHealth);
-            console.log(UfoHpIncreaseScore);
         }
 
         if (Ufo_Cooldown > 500) {
@@ -397,8 +394,10 @@ function checkCollision() {
             deathSound.play();
             gameRunning = false;
             showMainMenu();
+            Ufo_Cooldown = 5000;
             clearInterval(Ufo_Interval);
             Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
+            
       }}
             
         shots.forEach(function (shot) {

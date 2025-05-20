@@ -52,6 +52,8 @@ let player = {
 let shots = [];
 let ufos = [];
 let powerups = [];
+let hearts = [];
+
 
 document.onkeydown = function (e) {
     if (e.key === " ") { // Spacebar
@@ -126,7 +128,6 @@ function startGame() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
     gameRunning = true;
-    Hintergrundmusik.play();
     Hintergrundmusik.loop = true;
     loadImages();
     draw();
@@ -172,9 +173,7 @@ function ESCAPE_PRESSED() {
     } else if (gameRunning) {
         showMainMenu();
         gameRunning = false;
-        console.log("Game closed");
     } else if (!gameRunning && !inSettings) {
-        console.log("Menu closed");
         document.getElementById("MainMenu").classList.add("hidden");
         document.getElementById("score").classList.remove("hidden");
         document.getElementById("canvas").style.filter = "none";
@@ -273,6 +272,19 @@ MobileLayoutcheck.onclick = function () {
     }
 };
 
+function toggleMobileLayout() {
+    if (MobileLayoutcheck.checked) {
+        Handy_Oben.style.display = "block";
+        Handy_Unten.style.display = "block";
+        Handy_shot.style.display = "block";
+    }
+    else {
+        Handy_Oben.style.display = "none";
+        Handy_Unten.style.display = "none";
+        Handy_shot.style.display = "none";
+    }
+}
+
 
 
 document.getElementById("startBtn").onclick = function () {
@@ -280,23 +292,21 @@ document.getElementById("startBtn").onclick = function () {
     document.getElementById("score").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "none";
     gameRunning = true;
-    if (player.health <= 0) {player.health = player.maxhealth}
+    if (player.health <= 0) {player.health = player.maxhealth};
     startRound();
 }
 
 function startRound() {
     if (gameRunning && !alreadyExecuted) {
-        Handy_Oben.style.display = "block";
-        Handy_Unten.style.display = "block";
-        Handy_shot.style.display = "block";
+        Hintergrundmusik.play();
         setInterval(update, 1000 / 25);
         Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
         setInterval(checkCollision, 1000 / 25);
         Shot_Interval = setInterval(createShots, Shot_Cooldown);
         PowerUp_Interval = setInterval(createPowerup, PowerUp_Cooldown);
         alreadyExecuted = true;
-        
-    }}
+    }   
+    toggleMobileLayout();}
 
 
 
@@ -482,6 +492,28 @@ function loadImages() {
     player.img.src = player.src;
 }
 
+const heartImage = new Image();
+heartImage.src = 'img/heart.png'; // your heart icon
+
+
+function updateHearts() {
+    hearts = [];
+    for (let i = 0; i < player.health; i++) {
+        hearts.push({
+            x: player.x + i * 25 + 15,
+            y: player.y + 50,
+            width: 20,
+            height: 20,
+        });
+    }
+}
+
+function drawHearts() {
+    hearts.forEach((heart) => {
+        ctx.drawImage(heartImage, heart.x, heart.y, heart.width, heart.height);
+    });
+}
+
 
 function draw() {
     ctx.drawImage(backgroundImage, 0, 0);
@@ -496,6 +528,9 @@ function draw() {
     powerups.forEach(function (powerup) {
         ctx.drawImage(powerup.img, powerup.x, powerup.y, powerup.width, powerup.height);
     });
+
+    updateHearts();
+    drawHearts();
 
     updateScore();
     requestAnimationFrame(draw);

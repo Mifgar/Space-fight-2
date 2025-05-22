@@ -142,6 +142,7 @@ canvas {
     background: #151b2b;
     background: linear-gradient(to bottom right, #151b2b, #191f3c);
     overflow: hidden;
+    overflow-y: auto;
 }
 
 .header-row {
@@ -279,7 +280,7 @@ canvas {
 
 .checkBox input[type=checkbox] {
   position: absolute;
-  left: 50px;
+  transform: translate(-50%, 0);
   visibility: hidden;
 }
 

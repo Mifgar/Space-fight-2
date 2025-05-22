@@ -407,8 +407,11 @@ function checkCollision() {
             Ufo_Cooldown = 5000;
             clearInterval(Ufo_Interval);
             Ufo_Interval = setInterval(createUfos, Ufo_Cooldown);
-            
       }}
+        if (ufo.x < canvas.width * -1 + 500) { // the ufo can go 500px of screen
+            ufos = ufos.filter((u) => u != ufo);
+            console.log(ufo.x - canvas.width);
+            }
             
         shots.forEach(function (shot) {
             if (
@@ -428,6 +431,9 @@ function checkCollision() {
                         ufos = ufos.filter((u) => u != ufo);
                     }, 200);
                 }
+            }
+            if (shot.x > canvas.width) {
+                shots = shots.filter((s) => s != shot);
             }
         })
         powerups.forEach(function (powerup){

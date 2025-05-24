@@ -227,10 +227,12 @@ function ESCAPE_PRESSED() {
 // Volume control
 const MusicSlider = document.getElementById("MainMusicSlider");
 const ShotSoundSlider = document.getElementById("ShotSoundSlider");
+const HitSoundSlider = document.getElementById("HitSoundSlider");
 const MenuSoundSlider = document.getElementById("MenuSoundSlider");
 
 const MusicSliderValue = document.getElementById("MusicSlider-value");
 const ShotSliderValue = document.getElementById("ShotSlider-value");
+const HitSliderValue = document.getElementById("HitSlider-value");
 const MenuSliderValue = document.getElementById("MenuSlider-value");
 
 function SliderGradient(slider, valueDisplay, color = "orange", bgColor = "#2c2f4a") {
@@ -248,14 +250,17 @@ function SliderGradient(slider, valueDisplay, color = "orange", bgColor = "#2c2f
 function updateVolume() {
     Hintergrundmusik.volume = document.getElementById("MainMusicSlider").value;
     laserSound.volume = document.getElementById("ShotSoundSlider").value;
+    hitSound.volume = document.getElementById("HitSoundSlider").value;
     ButtonSound.volume = document.getElementById("MenuSoundSlider").value;
 
     SliderGradient(MusicSlider, MusicSliderValue, "#4de2f2");
     SliderGradient(ShotSoundSlider, ShotSliderValue, "#4de2f2");
+    SliderGradient(HitSoundSlider, HitSliderValue, "#4de2f2");
     SliderGradient(MenuSoundSlider, MenuSliderValue, "#4de2f2");
 }
 MusicSlider.addEventListener("input", updateVolume, {passive: true});
 ShotSoundSlider.addEventListener("input", updateVolume, {passive: true});
+HitSoundSlider.addEventListener("input", updateVolume, {passive: true});
 MenuSoundSlider.addEventListener("input", updateVolume, {passive: true});
 
 function toggleSound() {
@@ -532,7 +537,7 @@ function update() {
         });
 
         if (boss && !boss.defeated) {
-            boss.update();
+            boss.update(shots);
         }
 }}
 

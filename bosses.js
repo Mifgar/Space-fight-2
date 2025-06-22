@@ -7,14 +7,21 @@ let boss = null;
 
 // Base Boss class with basic properties and methods
 class Boss {
-    constructor(name, speed, width, height, health, shotspeed, shotCooldown, imgSrc, minInterval, maxInterval) {
+    constructor(name, speed, width, height, health, shotspeed, shotCooldown, magazine, FullMagazine, ReloadCooldown, imgSrc, minInterval, maxInterval) {
         this.name = name;
         this.speed = speed;
         this.width = width; 
         this.height = height; 
         this.health = health;
+        this.shots = [];
         this.shotspeed = shotspeed;
-        this.shotCooldown = shotCooldown;
+        this.shotCooldown = shotCooldown; // Cooldown for the next shot
+        this.lastShotTime = 0;
+        this.magazine = magazine;
+        this.FullMagazine = FullMagazine;
+        this.ReloadCooldown = ReloadCooldown; // Cooldown when Magazine is empty
+        this.reloading = false;
+        this.IsShooting = false;
         this.defeated = false;
         this.img = new Image();
         this.img.src = imgSrc; 
@@ -81,6 +88,39 @@ detectAndDodgeShots(shots) {
     }
 }
 
+
+shoot() {
+    const now = Date.now();
+
+    // Prevent shooting if still cooling down or out of ammo
+    if (now - this.lastShotTime < this.shotCooldown || this.magazine <= 0) return;
+
+    // Proceed with shooting
+    const shot = new Shot(this.x, this.y + this.height / 3, 30, 3, this.shotspeed);
+    this.shots.push(shot);
+    this.magazine -= 1;
+    this.lastShotTime = now;
+    console.log("Shots left in magazine:", this.magazine);
+
+    // If magazine is empty, schedule a reload
+    if (this.magazine <= 0 && !this.reloading) {
+        this.reloading = true;
+        setTimeout(() => {
+            this.magazine = this.FullMagazine + Math.floor(Math.random() * this.FullMagazine) - this.FullMagazine / 2; // randomize magazine by +- Fullmagazine/2 
+            this.reloading = false;
+            console.log(this.magazine)
+        }, this.ReloadCooldown);
+    }
+}
+
+
+    updateShots() {
+        this.shots = this.shots.filter(shot => {
+            shot.update();
+            return shot.x + shot.width > 0; // Keep shots that are still on the screen
+        });
+    }
+
     update(shots) {
         this.detectAndDodgeShots(shots);
 
@@ -111,6 +151,7 @@ detectAndDodgeShots(shots) {
             console.log(this.name + " has been defeated!");
         }
     }
+
     draw(ctx) {
         ctx.font = "1em poppins";
         ctx.fillStyle = "red";
@@ -120,75 +161,102 @@ detectAndDodgeShots(shots) {
         // ctx.strokeStyle = "rgba(255, 0, 0, 0.5)"; 
         // ctx.strokeRect(this.x - 350, this.y - 100, 350+ this.width, this.height + 200);
     }
+    drawShots(ctx) {
+        for (const shot of this.shots) {
+            shot.draw(ctx);
+    }
 }
+
+}
+
+class Shot {
+    constructor(x, y, width, height, speed) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.speed = speed;
+        this.img = new Image();
+        this.img.src = 'img/shot.png'; // Path to the shot image
+    }
+
+    update() {
+        this.x -= this.speed; // Move the shot to the left
+    }
+
+    draw(ctx) {
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
+    }
+}
+
 
 // Boss definitions based on the provided traits
 class Goliath extends Boss {
     constructor() {
-        super("Goliath", 1, 435/2, 245/2, 50, 0, 0, "img/Goliath.png", 4000, 6000);
+        super("Goliath", 1, 435/2, 245/2, 50, 5, 1500, 10, 10, 3000, "img/Goliath.png", 4000, 6000);
     }
 }
 
 class Crawler extends Boss {
     constructor() {
-        super("Crawler", 1, 460/2, 246/2, 75, 0, 0, "img/Crawler.png", 4000, 6000);
+        super("Crawler", 1, 449/2, 187/2, 75, 4, 1800, 3, 3, 2500, "img/Crawler.png", 4000, 6000);
     }
 }
 
 class Bulwark extends Boss {
     constructor() {
-        super("Bulwark", 3, 460/2, 246/2, 150, 0, 0, "img/Bulwark.png", 3000, 5000);
+        super("Bulwark", 3, 460/2, 246/2, 150, 4, 2000, 5, 5, 4000, "img/Bulwark.png", 3000, 5000);
 
     }
 }
 
 class Blitzor extends Boss {
     constructor() {
-        super("Blitzor", 7.5, 460/2, 246/2, 100, 0, 0, "img/Blitzor.png", 2000, 5000);
+        super("Blitzor", 7.5, 411/2, 216/2, 100, 7, 1000, 7, 7, 2000, "img/Blitzor.png", 2000, 5000);
     }
 }
 
 class Dart extends Boss {
     constructor() {
-        super("Dart", 7.5, 374/2, 116/2, 75, 0, 0, "img/Dart.png", 2000, 5000);
+        super("Dart", 7.5, 374/2, 116/2, 75, 9, 600, 6, 6, 1500, "img/Dart.png", 2000, 5000);
     }
 }
 
 class Drifter extends Boss {
     constructor() {
-        super("Drifter", 5, 453/2, 161/2, 250, 0, 0, "img/Drifter.png", 3000, 4000);
+        super("Drifter", 5, 453/2, 161/2, 250, 5, 1300, 5, 5, 2500,"img/Drifter.png", 3000, 4000);
     }
 }
 
 class Wasp extends Boss {
     constructor() {
-        super("Wasp", 10, 331/2, 133/2, 150, 0, 0, "img/Wasp.png", 1000, 4000);
+        super("Wasp", 10, 331/2, 133/2, 150, 10, 400, 4, 4, 1200,"img/Wasp.png", 1000, 4000);
 
     }
 }
 
 class Juggernaut extends Boss {
     constructor() {
-        super("Juggernaut", 3, 430/1, 276/1, 500, 0, 0, "img/Juggernaut.png", 3000, 5000);
+        super("Juggernaut", 3, 430/1, 276/1, 500, 3, 2500, 6, 6, 5000,"img/Juggernaut.png", 3000, 5000);
     }
 }
 
 class Phantom extends Boss {
     constructor() {
-        super("Phantom", 5, 439/2, 253/2, 250, 0, 0, "img/Phantom.png", 3000, 4000);
+        super("Phantom", 5, 439/2, 253/2, 250, 6, 900, 5, 5, 2000,"img/Phantom.png", 3000, 4000);
     }
 }
 
 class Vortex extends Boss {
     constructor() {
-        super("Vortex", 7.5, 464/2, 320/2, 550, 0, 0, "img/Vortex.png", 2000, 5000);
+        super("Vortex", 7.5, 464/2, 320/2, 550, 7, 1100, 6, 6, 2200,"img/Vortex.png", 2000, 5000);
     }
 }
 
 // Factory function to create a boss based on the current wave number
 function createBossForWave(wave) {
     switch (wave) {
-        case 1: return new Juggernaut();
+        case 1: return new Goliath();
         case 2: return new Crawler();
         case 3: return new Bulwark();
         case 4: return new Blitzor();

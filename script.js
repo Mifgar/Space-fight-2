@@ -411,6 +411,14 @@ function createPowerup() {
     }
 }
 
+function BossShooting() {
+        if (boss && !boss.defeated) {
+            boss_Shot_Interval = setInterval(() => {
+                boss.shoot()
+            }, boss.shotCooldown);
+        }
+}
+
 function checkCollision() {
     if (!player.invincible) {
         ufos.forEach(function (ufo) {
@@ -499,8 +507,47 @@ function checkCollision() {
                     setTimeout(() => {
                         player.powerup = false;
                     }, 5000);
-                }
-            })
+                }})
+                
+        if (boss && !boss.defeated) {
+            boss.shots.forEach(function (bossShot) {
+        if (
+            player.x < bossShot.x + bossShot.width &&
+            player.x + player.width > bossShot.x &&
+            player.y < bossShot.y + bossShot.height &&
+            player.y + player.height > bossShot.y
+        ) {
+            // Only take damage if not invincible
+            if (!player.invincible) {
+                player.health--;
+                player.invincible = true;
+                player.blink = true;
+
+                const blinkInterval = setInterval(() => {
+                    player.blink = !player.blink;
+                }, 100);
+
+                setTimeout(() => {
+                    player.invincible = false;
+                    player.blink = false;
+                    clearInterval(blinkInterval);
+                }, 1000);
+
+                // Remove the boss shot after hit
+                boss.shots = boss.shots.filter(s => s !== bossShot);
+
+                if (player.health <= 0) {
+                    score = 0;
+                    ufos = [];
+                    shots = [];
+                    deathSound.play();
+                    gameRunning = false;
+                    showMainMenu();
+                    currentUfo_Cooldown = 5000;
+                    clearInterval(Ufo_Interval);
+                    Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
+                }}}});
+            }
         }
     }
 
@@ -538,6 +585,8 @@ function update() {
 
         if (boss && !boss.defeated) {
             boss.update(shots);
+            boss.updateShots();
+            BossShooting();
         }
 }}
 
@@ -590,6 +639,7 @@ function draw() {
 
     if (boss && !boss.defeated) {
         boss.draw(ctx);
+        boss.drawShots(ctx);
     }
 
 

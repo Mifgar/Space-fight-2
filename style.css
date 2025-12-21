@@ -425,13 +425,35 @@ canvas {
     filter: brightness(80%) drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.5));
 }
 
+.Event-Log{
+    position: absolute;
+    top: 8rem;
+    font-family: monospace, 'poppins', sans-serif;
+    font-size: 1.1rem;
+    color: #fff;
+    padding: 0px 15px;
+    border-right: .15rem solid white;
+    pointer-events: none;
+    overflow: hidden;
+    white-space: pre-wrap;
+    line-height: 1.4;
+    animation: blink-caret .75s step-end infinite;
+    transition: opacity 0.3s ease;
+}
 
-
-
+@keyframes blink-caret {
+    from, to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: white;
+    }
+}
 
 
 .hidden {
     display: none;
+    pointer-events: none;
 }
 
 .Landscape-advise {

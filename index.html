@@ -48,6 +48,11 @@
                         <div id="MenuSlider-value">0%</div>
                     </div>
                     <div class="volume-setting">
+                        <p>Typing</p>
+                        <input id="TypeSoundSlider" type="range" min="0" max="1" step="0.001" value="0.1">
+                        <div id="TypeSlider-value">0%</div>
+                    </div>
+                    <div class="volume-setting">
                         <div class="MobileLayout">
                             <p>Mobile Layout</p>
                             <label class="checkBox">
@@ -71,12 +76,16 @@
         </div>
         <!-- Handy Buttons ↑ -->
 
+        <h3 class="Event-Log hidden" id="eventLog"></h3>
         <h2 class="Landscape-advise">For the Best Experience please Rotate your Phone</h2>
         <canvas id="canvas" width="1200px" height="800px" z-index="0"></canvas>
         <p id="score" class="hidden"></p>
     </div>
+
+
     <script src="bosses.js"></script>
     <script src="script.js"></script>
+    <script src="EventLog.js"></script>
 </body>
 
 </html>

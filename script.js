@@ -30,20 +30,40 @@ let Shot_Cooldown = 500;
 
 let PowerUp_Cooldown = 10000;
 let lastPowerupState = false;
+let bossActivitys = false;
 
 // Sounds
 let togglesound = true;
-let shotSound = new Audio("sounds/laser.mp3"); shotSound.volume = 0.05;
-let backgroundmusic = new Audio("sounds/backgroundmusic.mp3"); backgroundmusic.volume = 0.02; // 0.02
-let hitSound = new Audio("sounds/hit.mp3"); hitSound.volume = 0.4;
-let ButtonSound = new Audio("sounds/ButtonSound.mp3"); ButtonSound.volume = 0.4;
-let deathSound = new Audio("sounds/death.mp3"); deathSound.volume = 0.45;
+const Sounds = {
+    shot: new Audio("sounds/laser.mp3"),
+    music: new Audio("sounds/music.mp3"),
+    hit: new Audio("sounds/hit.mp3"),
+    button: new Audio("sounds/ButtonSound.mp3"),
+    death: new Audio("sounds/death.mp3"),
+    type: new Audio("sounds/type.mp3"),
+    softType: new Audio("sounds/soft-type.mp3"),
+    hardType: new Audio("sounds/hard-type.mp3"),
+};
+const typeSound = [ 
+    Sounds.type,
+    Sounds.softType,
+    Sounds.hardType
+];
+
+// Initial Volume Values
+Sounds.shot.volume = 0.05;
+Sounds.music.volume = 0.02;
+Sounds.hit.volume = 0.4;
+Sounds.button.volume = 0.4;
+Sounds.death.volume = 0.45;
+
 
 const GameData = {
-    musicVolume: backgroundmusic.volume,
-    shotVolume: shotSound.volume,
-    hitVolume: hitSound.volume,
-    menuVolume: ButtonSound.volume,
+    musicVolume: Sounds.music.volume,
+    shotVolume: Sounds.shot.volume,
+    hitVolume: Sounds.hit.volume,
+    menuVolume: Sounds.button.volume,
+    typeVolume: typeSound[0].volume,
     Sound: togglesound,
     TotalKills: 0,
     BestScore: 0,
@@ -141,7 +161,7 @@ function startGame() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
     gameRunning = true;
-    backgroundmusic.loop = true;
+    Sounds.music.loop = true;
     loadData();
     loadImages();
     draw();
@@ -158,25 +178,25 @@ function showMainMenu() {
     Handy_shot.style.display = "none";
 
     startBtn.addEventListener("click", () => {
-        ButtonSound.play();
+        Sounds.button.play();
     }, {passive: true});
 
     settingsBtn.addEventListener("click", () => {
-        ButtonSound.play();
+        Sounds.button.play();
     }, {passive: true});
 
     backBtn.addEventListener("click", () => {
-        ButtonSound.play();
+        Sounds.button.play();
     }, {passive: true});
 }
 
 // Start the wave system
 function startWave() {
-    console.log(`Wave ${currentWave} started! Boss will arrive shortly...`);
+    typewriterLog(`Wave ${currentWave} started! Boss will arrive shortly...`, 100);
 
     setTimeout(() => {
         boss = createBossForWave(currentWave);
-        console.log(`Boss ${boss.name} has arrived!`);
+        typewriterLog(`Boss ${boss.name} has arrived!`, 100, 5000);
     }, 1 * 60 * 100);
 }
 
@@ -239,11 +259,13 @@ const MusicSlider = document.getElementById("MainMusicSlider");
 const ShotSoundSlider = document.getElementById("ShotSoundSlider");
 const HitSoundSlider = document.getElementById("HitSoundSlider");
 const MenuSoundSlider = document.getElementById("MenuSoundSlider");
+const TypeSoundSlider = document.getElementById("TypeSoundSlider");
 
 const MusicSliderValue = document.getElementById("MusicSlider-value");
 const ShotSliderValue = document.getElementById("ShotSlider-value");
 const HitSliderValue = document.getElementById("HitSlider-value");
 const MenuSliderValue = document.getElementById("MenuSlider-value");
+const TypeSliderValue = document.getElementById("TypeSlider-value");
 
 function SliderGradient(slider, valueDisplay, color = "orange", bgColor = "#2c2f4a") {
     const min = parseFloat(slider.min);
@@ -258,49 +280,53 @@ function SliderGradient(slider, valueDisplay, color = "orange", bgColor = "#2c2f
 }
 
 function updateVolume() {
-    backgroundmusic.volume = document.getElementById("MainMusicSlider").value;
-    shotSound.volume = document.getElementById("ShotSoundSlider").value;
-    hitSound.volume = document.getElementById("HitSoundSlider").value;
-    ButtonSound.volume = document.getElementById("MenuSoundSlider").value;
+    Sounds.music.volume = MusicSlider.value;
+    Sounds.shot.volume = ShotSoundSlider.value;
+    Sounds.hit.volume = HitSoundSlider.value;
+    Sounds.button.volume = MenuSoundSlider.value;
 
-    GameData.musicVolume = backgroundmusic.volume;
-    GameData.shotVolume = shotSound.volume;
-    GameData.hitVolume = hitSound.volume;
-    GameData.menuVolume = ButtonSound.volume;
+    // Special because of more than one type sound
+    const typeVolume = TypeSoundSlider.value;
+        typeSound.forEach(sound => {
+        sound.volume = typeVolume;
+    });
+
+    GameData.musicVolume = Sounds.music.volume;
+    GameData.shotVolume = Sounds.shot.volume;
+    GameData.hitVolume = Sounds.hit.volume;
+    GameData.menuVolume = Sounds.button.volume;
+    GameData.typeVolume = typeVolume;
     saveData();
 
     SliderGradient(MusicSlider, MusicSliderValue, "#4de2f2");
     SliderGradient(ShotSoundSlider, ShotSliderValue, "#4de2f2");
     SliderGradient(HitSoundSlider, HitSliderValue, "#4de2f2");
     SliderGradient(MenuSoundSlider, MenuSliderValue, "#4de2f2");
+    SliderGradient(TypeSoundSlider, TypeSliderValue, "#4de2f2");
 }
 MusicSlider.addEventListener("input", updateVolume, {passive: true});
 ShotSoundSlider.addEventListener("input", updateVolume, {passive: true});
 HitSoundSlider.addEventListener("input", updateVolume, {passive: true});
 MenuSoundSlider.addEventListener("input", updateVolume, {passive: true});
+TypeSoundSlider.addEventListener("input", updateVolume, {passive: true});
 
 function toggleSound() {
     if (togglesound) {
-        backgroundmusic.muted = true;
-        shotSound.muted = true;
-        ButtonSound.muted = true;
-        hitSound.muted = true;
-        deathSound.muted = true;
+        Object.values(Sounds).forEach(sound => {
+            sound.muted = true;
+        })
+
         SoundMuteButton.style.backgroundImage = "url('../img/Mute1.png')";
         togglesound = false;
-        GameData.Sound = togglesound;
-        saveData();
     } else {
-        backgroundmusic.muted = false;
-        shotSound.muted = false;
-        ButtonSound.muted = false;
-        hitSound.muted = false;
-        deathSound.muted = false;
+        Object.values(Sounds).forEach(sound => {
+            sound.muted = false;
+        })
         SoundMuteButton.style.backgroundImage = "url('../img/Sound1.png')";
         togglesound = true;
-        GameData.Sound = togglesound;
-        saveData();
     }
+    GameData.Sound = togglesound;
+    saveData();
 }
 SoundMuteButton.onclick = function () { toggleSound() }
 
@@ -360,7 +386,7 @@ document.getElementById("startBtn").onclick = function () {
 
 function startRound() {
     if (gameRunning && !alreadyExecuted) {
-        backgroundmusic.play();
+        Sounds.music.play();
         setInterval(update, 1000 / 25);
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
         setInterval(checkCollision, 1000 / 25);
@@ -397,7 +423,7 @@ function createUfos() {
 
 function createShots() {
     if (gameRunning && KEY_SPACE) {
-        shotSound.play();
+        Sounds.shot.play();
         let shot = {
             x: player.x + player.width,
             y: player.y + player.height / 2,
@@ -420,7 +446,7 @@ function createPowerup() {
             y: Math.random() * 750,
             width: 50,
             height: 50,
-            src: "../img/crate.jpg",
+            src: "img/crate.jpg",
             img: new Image(),
         }
         powerup.img.src = powerup.src; // PowerUp image is loaded
@@ -432,7 +458,7 @@ function createPowerup() {
 }
 
 function BossShooting() {
-        if (boss && !boss.defeated) {
+        if (bossActivitys) {
             boss_Shot_Interval = setInterval(() => {
                 boss.shoot()
             }, boss.shotCooldown);
@@ -471,7 +497,7 @@ function checkCollision() {
                     score = 0;
                     ufos = []; // Clears all ufos and shots
                     shots = [];
-                    deathSound.play();
+                    Sounds.death.play();
                     gameRunning = false;
                     showMainMenu();
                     currentUfo_Cooldown = 5000;
@@ -490,7 +516,7 @@ function checkCollision() {
                     shot.y < ufo.y + ufo.height &&
                     shot.y + shot.height > ufo.y
                 ) {
-                    hitSound.play();
+                    Sounds.hit.play();
                     ufo.health -= shot.damage
                     score += 10;
                     shots = shots.filter((s) => s != shot);
@@ -503,7 +529,7 @@ function checkCollision() {
                         }, 200);
                     }
                 }
-                if (boss && !boss.defeated) {
+                if (bossActivitys) {
                     if (
                         shot.x < boss.x + boss.width &&
                         shot.x + shot.width > boss.x &&
@@ -511,7 +537,7 @@ function checkCollision() {
                         shot.y + shot.height > boss.y
                     ) {
                         GameData.TotalKills++;
-                        hitSound.play();
+                        Sounds.hit.play();
                         boss.takeDamage(shot.damage);  
                         shots = shots.filter((s) => s !== shot);
                     }
@@ -535,7 +561,7 @@ function checkCollision() {
                     }, 5000);
                 }})
                 
-        if (boss && !boss.defeated) {
+        if (bossActivitys) {
             boss.shots.forEach(function (bossShot) {
         if (
             player.x < bossShot.x + bossShot.width &&
@@ -566,7 +592,7 @@ function checkCollision() {
                     score = 0;
                     ufos = [];
                     shots = [];
-                    deathSound.play();
+                    Sounds.death.play();
                     gameRunning = false;
                     showMainMenu();
                     currentUfo_Cooldown = 5000;
@@ -578,6 +604,7 @@ function checkCollision() {
     }
 
 function update() {
+    bossActivitys = (boss && !boss.defeated && gameRunning);
     if (gameRunning) {
         if (KEY_UP && player.y > 0) {
             player.y -= 5;
@@ -593,10 +620,10 @@ function update() {
             clearInterval(Shot_Interval);
             if (player.powerup) {
                 Shot_Cooldown = 250;
-                shotSound.playbackRate = 2;
+                Sounds.shot.playbackRate = 2;
             } else {
                 Shot_Cooldown = 500;
-                shotSound.playbackRate = 1;
+                Sounds.shot.playbackRate = 1;
                 ShotSpeed = 10;
             }
             Shot_Interval = setInterval(createShots, Shot_Cooldown);                      
@@ -609,7 +636,7 @@ function update() {
           powerup.x -= 15;
         });
 
-        if (boss && !boss.defeated) {
+        if (bossActivitys) {
             boss.update(shots);
             boss.updateShots();
             BossShooting();
@@ -663,7 +690,7 @@ function draw() {
         ctx.drawImage(powerup.img, powerup.x, powerup.y, powerup.width, powerup.height);
     });
 
-    if (boss && !boss.defeated) {
+    if (bossActivitys) {
         boss.draw(ctx);
         boss.drawShots(ctx);
     }
@@ -688,21 +715,25 @@ function loadData() {
     const saved = localStorage.getItem('GameData');
     if (saved) {
         const data = JSON.parse(saved);
-        Object.assign(GameData, parsed);
+        Object.assign(GameData, data);
         GameData.score = data.score ?? 0;
     }
     // Apply loaded settings to audio and sliders
-    backgroundmusic.volume = GameData.musicVolume;
-    shotSound.volume = GameData.shotVolume;
-    hitSound.volume = GameData.hitVolume;
-    ButtonSound.volume = GameData.menuVolume;
-    backgroundmusic.muted = shotSound.muted = ButtonSound.muted = hitSound.muted = deathSound.muted = GameData.muted;
+    Sounds.music.volume = GameData.musicVolume;
+    Sounds.shot.volume = GameData.shotVolume;
+    Sounds.hit.volume = GameData.hitVolume;
+    Sounds.button.volume = GameData.menuVolume;
+    typeSound.forEach(sound => {
+    sound.volume = GameData.typeVolume;
+    })
+    Object.values(Sounds).forEach(sound => sound.muted = GameData.muted);
 
     // Update slider UI if needed
     MusicSlider.value = GameData.musicVolume;
     ShotSoundSlider.value = GameData.shotVolume;
     HitSoundSlider.value = GameData.hitVolume;
     MenuSoundSlider.value = GameData.menuVolume;
+    TypeSoundSlider.value = GameData.typeVolume;
 }
 
 window.addEventListener('beforeunload', saveData);

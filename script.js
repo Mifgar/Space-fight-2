@@ -160,6 +160,7 @@ Handy_shot.addEventListener("mouseup", function () {
 function startGame() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
+    canvas.style.imageRendering = "pixelated";
     gameRunning = true;
     Sounds.music.loop = true;
     loadData();

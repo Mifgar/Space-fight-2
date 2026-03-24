@@ -1,2 +1,8 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Treat image and audio files as binary — git won't try to diff them
+*.png binary
+*.jpg binary
+*.mp3 binary
+*.wav binary

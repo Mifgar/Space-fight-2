@@ -10,24 +10,24 @@ class Boss {
     constructor(name, speed, width, height, health, shotspeed, shotCooldown, magazine, FullMagazine, ReloadCooldown, imgSrc, minInterval, maxInterval) {
         this.name = name;
         this.speed = speed;
-        this.width = width; 
-        this.height = height; 
+        this.width = width;
+        this.height = height;
         this.health = health;
         this.shots = [];
         this.shotspeed = shotspeed;
-        this.shotCooldown = shotCooldown; // Cooldown for the next shot
+        this.shotCooldown = shotCooldown;
         this.lastShotTime = 0;
         this.magazine = magazine;
         this.FullMagazine = FullMagazine;
-        this.ReloadCooldown = ReloadCooldown; // Cooldown when Magazine is empty
+        this.ReloadCooldown = ReloadCooldown;
         this.reloading = false;
         this.IsShooting = false;
         this.defeated = false;
         this.img = new Image();
-        this.img.src = imgSrc; 
-        this.x = canvas.width - this.width - 70; // Initial x position
-        this.y = canvas.height/2 - this.height; // Initial y position
-        this.direction = Math.random() < 0.5 ? 1 : -1; // 1 for down, -1 for up
+        this.img.src = imgSrc;
+        this.x = canvas.width - this.width - 70;
+        this.y = canvas.height / 2 - this.height;
+        this.direction = Math.random() < 0.5 ? 1 : -1;
         this.minInterval = minInterval;
         this.maxInterval = maxInterval;
         this.lastDodge = 0;
@@ -36,110 +36,90 @@ class Boss {
     }
 
     scheduleDirectionChange() {
-        // Calculate interval influenced by speed (faster speed = smaller interval)
         const interval = this.maxInterval - (this.speed / 10) * (this.maxInterval - this.minInterval);
-        // Add some randomness:
         const randomInterval = interval * (Math.random() * 0.5 + 0.75);
         setTimeout(() => {
             this.changeDirection();
-            this.scheduleDirectionChange(); // re-schedule next change
+            this.scheduleDirectionChange();
         }, randomInterval);
     }
+
     changeDirection() {
         this.direction = Math.random() < 0.5 ? 1 : -1;
     }
 
+    detectAndDodgeShots(shots) {
+        const now = Date.now();
+        if (now - this.lastDodge < this.dodgeCooldown) return;
 
-detectAndDodgeShots(shots) {
-    const now = Date.now();
-    if (now - this.lastDodge < this.dodgeCooldown) return;
+        const detectionBox = {
+            x: this.x - 350,
+            y: this.y - 100,
+            width: 150 + this.width,
+            height: this.height + 200,
+        };
 
-    // Define a detection box in front of the boss
-    const detectionBox = {
-        x: this.x - 350,
-        y: this.y - 100,
-        width: 150+ this.width,
-        height: this.height + 200,
-    };
+        let foundShot = null;
 
-    let foundShot = null;
+        for (const shot of shots) {
+            if (
+                shot.x + shot.width > detectionBox.x &&
+                shot.x < detectionBox.x + detectionBox.width &&
+                shot.y + shot.height > detectionBox.y &&
+                shot.y < detectionBox.y + detectionBox.height
+            ) {
+                foundShot = shot;
+                break;
+            }
+        }
 
-    // Find first shot in detection box
-    for (const shot of shots) {
-        if (
-            shot.x + shot.width > detectionBox.x &&
-            shot.x < detectionBox.x + detectionBox.width &&
-            shot.y + shot.height > detectionBox.y &&
-            shot.y < detectionBox.y + detectionBox.height
-        ) {
-            foundShot = shot;
-            break; // only one dodge per detection
+        if (foundShot) {
+            const bossCenterY = this.y + this.height / 2;
+            const shotCenterY = foundShot.y + foundShot.height / 2;
+            this.direction = shotCenterY > bossCenterY ? -1 : 1;
+            this.lastDodge = now;
         }
     }
 
-    if (foundShot) {
-        const bossCenterY = this.y + this.height / 2;
-        const shotCenterY = foundShot.y + foundShot.height / 2;
+    shoot() {
+        const now = Date.now();
+        if (now - this.lastShotTime < this.shotCooldown || this.magazine <= 0) return;
 
-        // If shot is below boss, move up. If above, move down.
-        this.direction = shotCenterY > bossCenterY ? -1 : 1;
+        const shot = new Shot(this.x, this.y + this.height / 3, 30, 3, this.shotspeed);
+        this.shots.push(shot);
+        this.magazine -= 1;
+        this.lastShotTime = now;
 
-        this.lastDodge = now;
+        if (this.magazine <= 0 && !this.reloading) {
+            this.reloading = true;
+            setTimeout(() => {
+                this.magazine = this.FullMagazine + Math.floor(Math.random() * this.FullMagazine) - this.FullMagazine / 2;
+                this.reloading = false;
+            }, this.ReloadCooldown);
+        }
     }
-}
-
-
-shoot() {
-    const now = Date.now();
-
-    // Prevent shooting if still cooling down or out of ammo
-    if (now - this.lastShotTime < this.shotCooldown || this.magazine <= 0) return;
-
-    // Proceed with shooting
-    const shot = new Shot(this.x, this.y + this.height / 3, 30, 3, this.shotspeed);
-    this.shots.push(shot);
-    this.magazine -= 1;
-    this.lastShotTime = now;
-    console.log("Shots left in magazine:", this.magazine);
-
-    // If magazine is empty, schedule a reload
-    if (this.magazine <= 0 && !this.reloading) {
-        this.reloading = true;
-        setTimeout(() => {
-            this.magazine = this.FullMagazine + Math.floor(Math.random() * this.FullMagazine) - this.FullMagazine / 2; // randomize magazine by +- Fullmagazine/2 
-            this.reloading = false;
-            console.log(this.magazine)
-        }, this.ReloadCooldown);
-    }
-}
-
 
     updateShots() {
         this.shots = this.shots.filter(shot => {
             shot.update();
-            return shot.x + shot.width > 0; // Keep shots that are still on the screen
+            return shot.x + shot.width > 0;
         });
     }
 
     update(shots) {
         this.detectAndDodgeShots(shots);
-
         this.y += this.direction * this.speed;
 
         if (this.y < 0) {
             this.y = 0;
             this.maxInterval *= 1.5;
             this.direction = 1;
-            setTimeout(() => {
-                this.maxInterval /= 1.5
-            }, this.maxInterval);
+            setTimeout(() => { this.maxInterval /= 1.5; }, this.maxInterval);
         } else if (this.y + this.height > canvas.height) {
             this.y = canvas.height - this.height;
             this.maxInterval *= 1.5;
             this.direction = -1;
-            setTimeout(() => {
-                this.maxInterval /= 1.5
-            }, this.maxInterval);
+            setTimeout(() => { this.maxInterval /= 1.5; }, this.maxInterval);
         }
     }
 
@@ -148,25 +128,21 @@ shoot() {
         if (this.health <= 0) {
             this.health = 0;
             this.defeated = true;
-            console.log(this.name + " has been defeated!");
         }
     }
 
     draw(ctx) {
-        ctx.font = "1em poppins";
+        ctx.font = "1em 'Poppins', monospace"; // Fixed: font name needs quotes
         ctx.fillStyle = "red";
-        ctx.drawImage(this.img, this.x, this.y, this.width, this.height); 
+        ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
         ctx.fillText(this.name + " HP: " + this.health, this.x + 10, this.y + this.height + 30);
-        // Debugging Detection Area
-        // ctx.strokeStyle = "rgba(255, 0, 0, 0.5)"; 
-        // ctx.strokeRect(this.x - 350, this.y - 100, 350+ this.width, this.height + 200);
     }
+
     drawShots(ctx) {
         for (const shot of this.shots) {
             shot.draw(ctx);
+        }
     }
-}
-
 }
 
 class Shot {
@@ -177,11 +153,11 @@ class Shot {
         this.height = height;
         this.speed = speed;
         this.img = new Image();
-        this.img.src = 'img/shot.png'; // Path to the shot image
+        this.img.src = 'img/shot.png';
     }
 
     update() {
-        this.x -= this.speed; // Move the shot to the left
+        this.x -= this.speed;
     }
 
     draw(ctx) {
@@ -189,8 +165,7 @@ class Shot {
     }
 }
 
-
-// Boss definitions based on the provided traits
+// Boss definitions
 class Goliath extends Boss {
     constructor() {
         super("Goliath", 1, 435/2, 245/2, 50, 5, 1500, 10, 10, 3000, "img/Goliath.png", 4000, 6000);
@@ -206,7 +181,6 @@ class Crawler extends Boss {
 class Bulwark extends Boss {
     constructor() {
         super("Bulwark", 3, 460/2, 246/2, 150, 4, 2000, 5, 5, 4000, "img/Bulwark.png", 3000, 5000);
-
     }
 }
 
@@ -224,52 +198,49 @@ class Dart extends Boss {
 
 class Drifter extends Boss {
     constructor() {
-        super("Drifter", 5, 453/2, 161/2, 250, 5, 1300, 5, 5, 2500,"img/Drifter.png", 3000, 4000);
+        super("Drifter", 5, 453/2, 161/2, 250, 5, 1300, 5, 5, 2500, "img/Drifter.png", 3000, 4000);
     }
 }
 
 class Wasp extends Boss {
     constructor() {
-        super("Wasp", 10, 331/2, 133/2, 150, 10, 400, 4, 4, 1200,"img/Wasp.png", 1000, 4000);
-
+        super("Wasp", 10, 331/2, 133/2, 150, 10, 400, 4, 4, 1200, "img/Wasp.png", 1000, 4000);
     }
 }
 
 class Juggernaut extends Boss {
     constructor() {
-        super("Juggernaut", 3, 430/1, 276/1, 500, 3, 2500, 6, 6, 5000,"img/Juggernaut.png", 3000, 5000);
+        super("Juggernaut", 3, 430/1, 276/1, 500, 3, 2500, 6, 6, 5000, "img/Juggernaut.png", 3000, 5000);
     }
 }
 
 class Phantom extends Boss {
     constructor() {
-        super("Phantom", 5, 439/2, 253/2, 250, 6, 900, 5, 5, 2000,"img/Phantom.png", 3000, 4000);
+        super("Phantom", 5, 439/2, 253/2, 250, 6, 900, 5, 5, 2000, "img/Phantom.png", 3000, 4000);
     }
 }
 
 class Vortex extends Boss {
     constructor() {
-        super("Vortex", 7.5, 464/2, 320/2, 550, 7, 1100, 6, 6, 2200,"img/Vortex.png", 2000, 5000);
+        super("Vortex", 7.5, 464/2, 320/2, 550, 7, 1100, 6, 6, 2200, "img/Vortex.png", 2000, 5000);
     }
 }
 
-// Factory function to create a boss based on the current wave number
 function createBossForWave(wave) {
     switch (wave) {
-        case 1: return new Goliath();
-        case 2: return new Crawler();
-        case 3: return new Bulwark();
-        case 4: return new Blitzor();
-        case 5: return new Dart();
-        case 6: return new Drifter();
-        case 7: return new Wasp();
-        case 8: return new Juggernaut();
-        case 9: return new Phantom();
+        case 1:  return new Goliath();
+        case 2:  return new Crawler();
+        case 3:  return new Bulwark();
+        case 4:  return new Blitzor();
+        case 5:  return new Dart();
+        case 6:  return new Drifter();
+        case 7:  return new Wasp();
+        case 8:  return new Juggernaut();
+        case 9:  return new Phantom();
         case 10: return new Vortex();
-        default: return new Goliath(); // Fallback to the first boss
+        default: return new Goliath();
     }
 }
 
-// Export objects to global scope if needed (for non-module environments)
 window.Boss = Boss;
 window.createBossForWave = createBossForWave;

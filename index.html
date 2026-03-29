@@ -17,7 +17,7 @@
 <body onload="startGame(); showMainMenu(); updateVolume();">
     <div id="GameScreen">
         <div class="MainMenu hidden" id="MainMenu">
-            <div class="menu">
+            <div class="menu" id="startMenu">
                 <button id="startBtn"></button>
                 <button id="settingsBtn"></button>
             </div>
@@ -62,6 +62,18 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div id="gameOverScreen" class="game-over-screen">
+            <div class="game-over-content">
+                <h1 id="goTitle">GAME OVER</h1>
+                <div class="go-stats">
+                    <p id="goScore">Score: 0</p>
+                    <p id="goBestScore">Best: 0</p>
+                    <p id="goKills">Kills: 0</p>
+                    <p id="goWave">Wave 1 of 10</p>
+                </div>
+                <button id="restartBtn">Play Again</button>
             </div>
         </div>
 

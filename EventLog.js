@@ -1,11 +1,16 @@
 let EventBoxTimeout = null;
 let typingActive = false;
+let typingPaused = false; // Set this to pause/resume the typewriter without cancelling it
+
+function pauseTypewriter() { typingPaused = true; }
+function resumeTypewriter() { typingPaused = false; }
 
 function typewriterLog(message, speed = 30, hideDelay = 5000) {
     const logBox = document.getElementById("eventLog");
     if (!logBox) return;
 
     typingActive = false;
+    typingPaused = false;
 
     logBox.textContent = '';
     clearTimeout(EventBoxTimeout);
@@ -17,8 +22,13 @@ function typewriterLog(message, speed = 30, hideDelay = 5000) {
     let i = 0;
 
     function type() {
-
         if (typingActive !== token) return;
+
+        // If paused, check again in 100ms without advancing
+        if (typingPaused) {
+            setTimeout(type, 100);
+            return;
+        }
 
         if (i < message.length) {
             const char = message.charAt(i);
@@ -41,4 +51,3 @@ function typewriterLog(message, speed = 30, hideDelay = 5000) {
 
     type();
 }
-

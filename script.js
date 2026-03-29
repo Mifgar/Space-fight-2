@@ -2,6 +2,8 @@ let inSettings = false;
 let alreadyExecuted = false;
 let bossJustDefeated = false; // Tracks if we already showed the "press E" hint this wave
 
+let gameOver = false;
+
 // Explicit DOM references — no more implicit ID globals
 const Handy_Oben = document.getElementById("Handy_Oben");
 const Handy_Unten = document.getElementById("Handy_Unten");
@@ -12,6 +14,7 @@ const MobileLayoutcheck = document.getElementById("MobileLayoutcheck");
 const startBtn = document.getElementById("startBtn");
 const settingsBtn = document.getElementById("settingsBtn");
 const backBtn = document.getElementById("backBtn");
+const restartBtn = document.getElementById("restartBtn");
 
 let KEY_SPACE = false;
 let KEY_UP = false;
@@ -23,6 +26,8 @@ let rafId = null; // Stores the requestAnimationFrame id so it can be cancelled 
 let backgroundImage = new Image();
 let gameRunning = true;
 let score = 0;
+let scoreMult = 1;
+let killStreak = 0;
 
 // Wave system
 const maxWaves = 10;
@@ -80,6 +85,7 @@ const GameData = {
     Sound: togglesound,
     muted: false,
     TotalKills: 0,
+    currentKills: 0,
     BestScore: 0,
 };
 
@@ -91,6 +97,7 @@ let player = {
     src: 'img/rocket.png',
     maxhealth: 3,
     health: 3,
+    speed: 5,
     invincible: false,
     blink: false,
     powerup: false,
@@ -99,7 +106,6 @@ let player = {
 let shots = [];
 let ufos = [];
 let powerups = [];
-let hearts = [];
 
 // Keyboard input
 document.onkeydown = function (e) {
@@ -138,6 +144,15 @@ Handy_shot.addEventListener("mouseup", () => { KEY_SPACE = false; }, { passive: 
 startBtn.addEventListener("click", () => { Sounds.button.play(); }, { passive: true });
 settingsBtn.addEventListener("click", () => { Sounds.button.play(); }, { passive: true });
 backBtn.addEventListener("click", () => { Sounds.button.play(); }, { passive: true });
+restartBtn.addEventListener("click", () => {
+  Sounds.button.play();
+  document.getElementById("gameOverScreen").style.display = "none";
+  document.getElementById("score").classList.remove("hidden");
+  document.getElementById("canvas").style.filter = "none";
+  gameRunning = true;
+  resetGame();
+  startRound();
+}, { passive: true });
 
 function startGame() {
     canvas = document.getElementById('canvas');
@@ -154,6 +169,7 @@ function showMainMenu() {
     document.getElementById("MainMenu").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "blur(5px)";
     gameRunning = false;
+    pauseTypewriter();
 
     Handy_Oben.style.display = "none";
     Handy_Unten.style.display = "none";
@@ -174,7 +190,7 @@ function startWave() {
         }, boss.shotCooldown);
 
         typewriterLog(`${boss.name} has arrived!`, 100, 5000);
-    }, 6000);
+    }, 6000); //tune this to 30000
 }
 
 function nextWave() {
@@ -182,6 +198,7 @@ function nextWave() {
     clearInterval(boss_Shot_Interval);
     boss_Shot_Interval = null;
     boss = null;
+    bossActivitys = false;
     bossJustDefeated = false;
 
     if (currentWave < maxWaves) {
@@ -192,7 +209,9 @@ function nextWave() {
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
         startWave();
     } else {
-        typewriterLog(`All waves cleared — you are victorious!`, 80, 10000);
+        gameRunning = false;
+        showGameOverScreen(true);
+        gameOver = true;
     }
 }
 
@@ -225,6 +244,7 @@ function ESCAPE_PRESSED() {
         document.getElementById("score").classList.remove("hidden");
         document.getElementById("canvas").style.filter = "none";
         gameRunning = true;
+        resumeTypewriter();
         startRound();
     }
 }
@@ -283,7 +303,7 @@ TypeSoundSlider.addEventListener("input", updateVolume, { passive: true });
 function toggleSound() {
     togglesound = !togglesound;
     Object.values(Sounds).forEach(sound => { sound.muted = !togglesound; });
-    SoundMuteButton.style.backgroundImage = togglesound ? "url('img/Sound1.png')" : "url('img/Mute1.png')";
+    SoundMuteButton.style.backgroundImage = togglesound ? "url('../img/Sound1.png')" : "url('../img/Mute1.png')";
     GameData.Sound = togglesound;
     GameData.muted = !togglesound;
     saveData();
@@ -293,6 +313,7 @@ SoundMuteButton.onclick = function () { toggleSound(); };
 document.getElementById("SettingsButton").onclick = function () {
     showMainMenu();
     document.getElementById("settingsMenu").classList.remove("hidden");
+    if (gameOver) document.getElementById("startMenu").classList.add("hidden");
     inSettings = true;
 };
 
@@ -324,12 +345,13 @@ startBtn.onclick = function () {
     document.getElementById("score").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "none";
     gameRunning = true;
-    resetGame();
     startRound();
+    resumeTypewriter();
 };
 
 // Resets all game state for a clean new run — called every time Start is pressed
 function resetGame() {
+    document.getElementById("gameOverScreen").style.display = "none";
     currentWave = 1;
     boss = null;
     bossActivitys = false;
@@ -338,7 +360,10 @@ function resetGame() {
     ufos = [];
     powerups = [];
     score = 0;
+    scoreMult = 1;
+    killStreak = 0;
     player.health = player.maxhealth;
+    player.speed = 5;
     player.invincible = false;
     player.blink = false;
     player.powerup = false;
@@ -356,7 +381,7 @@ function resetGame() {
 
 function startRound() {
     if (!alreadyExecuted) {
-        // First run: create all intervals
+        // First run: create all intervals and kick off wave 1
         Sounds.music.play();
         setInterval(update, 1000 / 25);
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
@@ -365,7 +390,7 @@ function startRound() {
         PowerUp_Interval = setInterval(createPowerup, PowerUp_Cooldown);
         alreadyExecuted = true;
     } else {
-        // Subsequent runs: intervals already exist, just restart ufo spawning
+        // Resume from pause OR new game after death — wave is already running or reset by startBtn
         Sounds.music.play();
         clearInterval(Ufo_Interval);
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
@@ -381,14 +406,11 @@ function createUfos() {
             y: Math.random() * (canvas.height - 50),
             width: 100,
             height: 45,
-            src: 'img/ufo.png',
-            img: new Image(),
+            img: _ufoImg,
             health: UfoHealth,
             speed: Math.random() * UfoSpeed + 5
         };
-        ufo.img.src = ufo.src;
         ufos.push(ufo);
-
         if (currentUfo_Cooldown > 500) {
             currentUfo_Cooldown *= 0.95;
         }
@@ -405,27 +427,26 @@ function createShots() {
             y: player.y + player.height / 2,
             width: 30,
             height: 3,
-            src: 'img/shot.png',
-            img: new Image(),
+            img: _playerShotImg,
             speed: ShotSpeed,
             damage: 1,
         };
-        shot.img.src = shot.src;
         shots.push(shot);
     }
 }
 
 function createPowerup() {
     if (gameRunning) {
+        // 30% chance of a health drop, 70% speed boost
+        const type = Math.random() < 0.3 ? "health" : "shotSpeed";
         let powerup = {
             x: 1300,
             y: Math.random() * 750,
             width: 50,
             height: 50,
-            src: "img/crate.jpg",
-            img: new Image(),
+            img: type === "health" ? heartImage : _crateImg,
+            type: type,
         };
-        powerup.img.src = powerup.src;
         powerups.push(powerup);
         PowerUp_Cooldown = Math.random() * PowerUp_Cooldown + 5000;
         clearInterval(PowerUp_Interval);
@@ -444,6 +465,8 @@ function rectOverlap(a, b) {
 // Helper: applies damage to player with invincibility + blink — was copy-pasted twice before
 function damagePlayer() {
     player.health--;
+    scoreMult = 1;
+    killStreak = 0;
     player.invincible = true;
     player.blink = true;
 
@@ -461,13 +484,27 @@ function damagePlayer() {
 }
 
 function handlePlayerDeath() {
-    if (score > GameData.BestScore) {
-        GameData.BestScore = score;
-        saveData();
-    }
-    Sounds.death.play();
-    gameRunning = false;
-    showMainMenu();
+  Sounds.death.play();
+  gameRunning = false;
+  currentKills = 0;
+  showGameOverScreen(false);
+  gameOver = true;
+}
+
+function showGameOverScreen(isVictory) {
+  if (score > GameData.BestScore) {
+      GameData.BestScore = score;
+      saveData();
+  }
+  document.getElementById("goTitle").textContent = isVictory ? "VICTORY!" : "GAME OVER";
+  document.getElementById("goScore").textContent = "Score: " + score;
+  document.getElementById("goBestScore").textContent = "Best: " + GameData.BestScore;
+  document.getElementById("goKills").textContent = "Kills: " + GameData.currentKills;
+  document.getElementById("goWave").textContent = isVictory
+      ? "All " + maxWaves + " waves cleared!"
+      : "Wave " + currentWave + " of " + maxWaves;
+  document.getElementById("gameOverScreen").style.display = "flex";
+  document.getElementById("canvas").style.filter = "blur(5px)";
 }
 
 function checkCollision() {
@@ -493,12 +530,27 @@ function checkCollision() {
         if (hitUfo) {
             Sounds.hit.play();
             hitUfo.health -= shot.damage;
-            score += 10;
+            score += 10 * scoreMult;
             shots = shots.filter(s => s !== shot);
             if (hitUfo.health <= 0) {
                 GameData.TotalKills++;
-                hitUfo.img.src = "img/boom.png";
+                GameData.currentKills++;
+                killStreak++;
+                scoreMult = Math.min(1 + Math.floor(killStreak / 5), 5);
+                hitUfo.img = _boomImg;
                 hitUfo.speed = 0;
+                // 10% chance to drop a pickup at the kill location
+                if (Math.random() < 0.05) {
+                    const dropType = Math.random() < 0.4 ? "health" : "speed";
+                    powerups.push({
+                        x: hitUfo.x,
+                        y: hitUfo.y,
+                        width: 35,
+                        height: 35,
+                        img: dropType === "health" ? heartImage : _crateImg,
+                        type: dropType,
+                    });
+                }
                 setTimeout(() => { ufos = ufos.filter(u => u !== hitUfo); }, 200);
             }
             return;
@@ -533,18 +585,31 @@ function checkCollision() {
         if (rectOverlap(player, powerup)) {
             powerups = powerups.filter(p => p !== powerup);
             player.powerup = true;
-            ShotSpeed *= 1.5; // Was *= 1 (no-op) — now actually speeds up shots
+            ShotSpeed *= 1.5;
+            if (powerup.type === "health") {
+              if (player.health < player.maxhealth) {
+                  player.health++;
+                  typewriterLog("1 Heart restored!", 80, 3000);
+              } else {
+                  typewriterLog("Health already full!", 80, 2000);
+              }
+          } else {
+              player.powerup = true;
+              ShotSpeed = 15; // fixed value — was *= 1.5 which accumulated on repeat pickups
+              setTimeout(() => { player.powerup = false; }, 5000);
+              typewriterLog("Speed boost! 5 seconds!", 80, 3000);
+          }
             setTimeout(() => { player.powerup = false; }, 5000);
         }
     });
 }
 
 function update() {
-    bossActivitys = (boss !== null && !boss.defeated && gameRunning);
+    bossActivitys = (boss !== null && !boss.defeated && !boss.entering && gameRunning);
 
     if (gameRunning) {
-        if (KEY_UP && player.y > 0) player.y -= 5;
-        if (KEY_DOWN && player.y + player.height < canvas.height) player.y += 5;
+        if (KEY_UP && player.y > 0) player.y -= player.speed;
+        if (KEY_DOWN && player.y + player.height < canvas.height) player.y += player.speed;
 
         ufos.forEach(function (ufo) {
             ufo.x -= ufo.speed;
@@ -571,21 +636,25 @@ function update() {
         powerups.forEach(function (powerup) {
             powerup.x -= 15;
         });
+        powerups = powerups.filter(p => p.x + p.width > 0);
 
-        if (bossActivitys) {
+        if (boss && !boss.defeated) {
             boss.update(shots);
-            boss.updateShots();
+            if (bossActivitys) boss.updateShots();
         }
 
         // Detect boss defeat once and show the E-key hint via the event log
         if (boss && boss.defeated && !bossJustDefeated) {
             bossJustDefeated = true;
+            const bonus = currentWave * 100;
+            score += bonus;
             if (currentWave < maxWaves) {
-                typewriterLog(`${boss.name} defeated! Press E to start the next wave.`, 80, 8000);
+                typewriterLog(`${boss.name} defeated! +${bonus} pts. Press E for next wave.`, 80, 8000);
             } else {
-                typewriterLog(`All bosses defeated — you are victorious!`, 80, 10000);
+                typewriterLog(`${boss.name} defeated! +${bonus} pts. Press E for results!`, 80, 10000);
             }
         }
+        updateScore();
     }
 }
 
@@ -602,22 +671,17 @@ function loadImages() {
 const heartImage = new Image();
 heartImage.src = 'img/heart.png';
 
-function updateHearts() {
-    hearts = [];
-    for (let i = 0; i < player.health; i++) {
-        hearts.push({
-            x: player.x + i * 25 + 15,
-            y: player.y + 50,
-            width: 20,
-            height: 20,
-        });
-    }
-}
+// Pre-load all sprites once at startup — prevents new Image() on every enemy/shot spawn
+const _ufoImg = new Image();       _ufoImg.src = 'img/ufo.png';
+const _boomImg = new Image();      _boomImg.src = 'img/boom.png';
+const _crateImg = new Image();     _crateImg.src = 'img/crate.jpg';
+const _playerShotImg = new Image(); _playerShotImg.src = 'img/shot.png';
+
 
 function drawHearts() {
-    hearts.forEach((heart) => {
-        ctx.drawImage(heartImage, heart.x, heart.y, heart.width, heart.height);
-    });
+    for (let i = 0; i < player.health; i++) {
+        ctx.drawImage(heartImage, player.x + i * 25 + 15, player.y + 50, 20, 20);
+    }
 }
 
 function draw() {
@@ -635,20 +699,42 @@ function draw() {
         ctx.drawImage(powerup.img, powerup.x, powerup.y, powerup.width, powerup.height);
     });
 
-    if (bossActivitys) {
-        boss.draw(ctx);
-        boss.drawShots(ctx);
-    }
-
-    updateHearts();
+    if (boss && !boss.defeated) {
+      boss.draw(ctx);
+      if (bossActivitys) boss.drawShots(ctx);
+  }
     drawHearts();
-    updateScore();
 
     // Player draw moved before RAF — blink check is now a simple conditional, not an early return
     if (!player.invincible || !player.blink) {
         ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
     }
 
+    // Wave counter HUD (top-right)
+    ctx.font = "bold 24px 'Pixelify Sans', monospace";
+    ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.textAlign = "right";
+    ctx.fillText(`Wave ${currentWave} / ${maxWaves}`, canvas.width - 12, 80);
+    ctx.textAlign = "left";
+
+    // Kill-streak multiplier (top-left, under score element)
+    if (scoreMult > 1) {
+        const hue = 60 - (scoreMult - 2) * 12; // gold → orange → red as streak grows
+        ctx.font = "bold 18px 'Pixelify Sans', monospace";
+        ctx.fillStyle = `hsl(${hue}, 100%, 58%)`;
+        ctx.fillText(`x${scoreMult} STREAK!`, 12, 50);
+    }
+
+    // "Press E" canvas hint when boss is defeated and waiting for input
+    if (bossJustDefeated && boss && boss.defeated) {
+        const hint = currentWave < maxWaves ? "Press E for next wave" : "Press E for results";
+        ctx.font = "bold 20px 'Pixelify Sans', monospace";
+        ctx.textAlign = "center";
+        const alpha = 0.55 + 0.45 * Math.sin(Date.now() / 400);
+        ctx.fillStyle = `rgba(77, 226, 242, ${alpha})`;
+        ctx.fillText(hint, canvas.width / 2, canvas.height - 30);
+        ctx.textAlign = "left";
+    }
     rafId = requestAnimationFrame(draw);
 }
 
@@ -682,7 +768,7 @@ function loadData() {
     togglesound = GameData.Sound;
     const isMuted = GameData.muted ?? false;
     Object.values(Sounds).forEach(sound => { sound.muted = isMuted; });
-    SoundMuteButton.style.backgroundImage = isMuted ? "url('img/Mute1.png')" : "url('img/Sound1.png')";
+    SoundMuteButton.style.backgroundImage = isMuted ? "url('../img/Mute1.png')" : "url('../img/Sound1.png')";
 
     // Update slider UI
     MusicSlider.value = GameData.musicVolume;

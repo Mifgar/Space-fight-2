@@ -5,6 +5,10 @@ let boss = null;
  * Defines multiple boss classes with distinct behaviors.
  */
 
+// Pre-load shot image once — shared by all boss shots, prevents new Image() per shot fired
+const _shotImg = new Image();
+_shotImg.src = 'img/shot.png';
+
 // Base Boss class with basic properties and methods
 class Boss {
     constructor(name, speed, width, height, health, shotspeed, shotCooldown, magazine, FullMagazine, ReloadCooldown, imgSrc, minInterval, maxInterval) {
@@ -13,6 +17,7 @@ class Boss {
         this.width = width;
         this.height = height;
         this.health = health;
+        this.maxHealth = health;
         this.shots = [];
         this.shotspeed = shotspeed;
         this.shotCooldown = shotCooldown;
@@ -23,9 +28,13 @@ class Boss {
         this.reloading = false;
         this.IsShooting = false;
         this.defeated = false;
+        this.directionTimer = null;
+        this.entering = true;
+        this.enteringSpeed = Math.max(this.speed * 2, 10);
         this.img = new Image();
         this.img.src = imgSrc;
-        this.x = canvas.width - this.width - 70;
+        this.entryX = canvas.width - this.width - 70;
+        this.x = canvas.width;          // starts off-screen and slides in
         this.y = canvas.height / 2 - this.height;
         this.direction = Math.random() < 0.5 ? 1 : -1;
         this.minInterval = minInterval;
@@ -38,7 +47,8 @@ class Boss {
     scheduleDirectionChange() {
         const interval = this.maxInterval - (this.speed / 10) * (this.maxInterval - this.minInterval);
         const randomInterval = interval * (Math.random() * 0.5 + 0.75);
-        setTimeout(() => {
+        this.directionTimer = setTimeout(() => {
+            if (this.defeated) return;
             this.changeDirection();
             this.scheduleDirectionChange();
         }, randomInterval);
@@ -107,6 +117,14 @@ class Boss {
     }
 
     update(shots) {
+        if (this.entering) {
+            this.x -= this.enteringSpeed;
+            if (this.x <= this.entryX) {
+                this.x = this.entryX;
+                this.entering = false;
+            }
+            return;
+        }
         this.detectAndDodgeShots(shots);
         this.y += this.direction * this.speed;
 
@@ -128,14 +146,40 @@ class Boss {
         if (this.health <= 0) {
             this.health = 0;
             this.defeated = true;
+            clearTimeout(this.directionTimer);
         }
     }
 
     draw(ctx) {
-        ctx.font = "1em 'Poppins', monospace"; // Fixed: font name needs quotes
-        ctx.fillStyle = "red";
         ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
-        ctx.fillText(this.name + " HP: " + this.health, this.x + 10, this.y + this.height + 30);
+        
+        const barW = Math.max(this.width, 120);
+        const barH = 10;
+        const barX = this.x + (this.width - barW) / 2;
+        const barY = this.y - 22;
+        const ratio = this.health / this.maxHealth;
+
+        // Background shadow
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(barX - 1, barY - 1, barW + 2, barH + 2);
+        ctx.fillStyle = "#222";
+        ctx.fillRect(barX, barY, barW, barH);
+
+        // HP fill — green → yellow → red
+        ctx.fillStyle = ratio > 0.5 ? "#4cff4c" : ratio > 0.25 ? "#ffbb00" : "#ff4444";
+        ctx.fillRect(barX, barY, barW * ratio, barH);
+
+        // Border
+        ctx.strokeStyle = "rgba(255,255,255,0.35)";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barW, barH);
+
+        // Boss name above bar
+        ctx.font = "bold 13px 'Poppins', monospace";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.fillText(this.name, this.x + this.width / 2, barY - 5);
+        ctx.textAlign = "left";
     }
 
     drawShots(ctx) {
@@ -152,8 +196,7 @@ class Shot {
         this.width = width;
         this.height = height;
         this.speed = speed;
-        this.img = new Image();
-        this.img.src = 'img/shot.png';
+        this.img = _shotImg;
     }
 
     update() {

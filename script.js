@@ -147,7 +147,6 @@ backBtn.addEventListener("click", () => { Sounds.button.play(); }, { passive: tr
 restartBtn.addEventListener("click", () => {
   Sounds.button.play();
   document.getElementById("gameOverScreen").style.display = "none";
-  document.getElementById("score").classList.remove("hidden");
   document.getElementById("canvas").style.filter = "none";
   gameRunning = true;
   resetGame();
@@ -241,7 +240,7 @@ function ESCAPE_PRESSED() {
         gameRunning = false;
     } else if (!gameRunning && !inSettings) {
         document.getElementById("MainMenu").classList.add("hidden");
-        document.getElementById("score").classList.remove("hidden");
+
         document.getElementById("canvas").style.filter = "none";
         gameRunning = true;
         resumeTypewriter();
@@ -342,7 +341,6 @@ function toggleMobileLayout() {
 
 startBtn.onclick = function () {
     document.getElementById("MainMenu").classList.add("hidden");
-    document.getElementById("score").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "none";
     gameRunning = true;
     startRound();
@@ -654,12 +652,7 @@ function update() {
                 typewriterLog(`${boss.name} defeated! +${bonus} pts. Press E for results!`, 80, 10000);
             }
         }
-        updateScore();
     }
-}
-
-function updateScore() {
-    document.getElementById("score").innerHTML = "Score: " + score;
 }
 
 function loadImages() {
@@ -716,6 +709,13 @@ function draw() {
     ctx.textAlign = "right";
     ctx.fillText(`Wave ${currentWave} / ${maxWaves}`, canvas.width - 12, 80);
     ctx.textAlign = "left";
+
+    // Score (top-left)
+    ctx.font = "bold 24px 'Pixelify Sans', monospace";
+    ctx.fillStyle = "rgba(0,255,0,0.65)";
+    ctx.textAlign = "left";
+    ctx.fillText(`Score: ${score}`, 8, 30);
+    ctx.textAlign = "right";
 
     // Kill-streak multiplier (top-left, under score element)
     if (scoreMult > 1) {

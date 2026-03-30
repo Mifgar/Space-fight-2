@@ -5,6 +5,8 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
     cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="54" viewBox="0 0 24 24"><path fill="%23FFF" stroke="%23000" stroke-width="1.75" d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.85a.5.5 0 0 0-.85.35Z"></path></svg>')6 15, auto;
 
 }
@@ -52,6 +54,7 @@ canvas {
     height: auto; 
     max-width: 1200px;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    -webkit-touch-callout: none;
 }
 
 
@@ -580,8 +583,9 @@ canvas {
         height: 100vh;
     }
     canvas {
-        width: 90vw; /* Take up most of the screen width */
-        height: auto; /* Maintain aspect ratio */
+        width: auto; /* Take up most of the screen width */
+        height: 100vh; /* Maintain aspect ratio */
+        max-width: 100vw;
     }
     .settings-menu {
         width: 70%;
@@ -594,5 +598,8 @@ canvas {
         width: 100%;
         height: 100%;
         position: absolute;
+    }
+    .Event-Log {
+        top: 1rem;
     }
 }

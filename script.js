@@ -306,7 +306,7 @@ TypeSoundSlider.addEventListener("input", updateVolume, { passive: true });
 function toggleSound() {
     togglesound = !togglesound;
     Object.values(Sounds).forEach(sound => { sound.muted = !togglesound; });
-    SoundMuteButton.style.backgroundImage = togglesound ? "url('../img/Sound1.png')" : "url('../img/Mute1.png')";
+    SoundMuteButton.style.backgroundImage = togglesound ? "url('img/Sound1.png')" : "url('img/Mute1.png')";
     GameData.Sound = togglesound;
     GameData.muted = !togglesound;
     saveData();
@@ -723,14 +723,14 @@ function draw() {
     ctx.fillStyle = "rgba(0,255,0,0.65)";
     ctx.textAlign = "left";
     ctx.fillText(`Score: ${score}`, 8, 30);
-    ctx.textAlign = "right";
 
     // Kill-streak multiplier (top-left, under score element)
     if (scoreMult > 1) {
         const hue = 60 - (scoreMult - 2) * 12; // gold → orange → red as streak grows
         ctx.font = "bold 18px 'Pixelify Sans', monospace";
         ctx.fillStyle = `hsl(${hue}, 100%, 58%)`;
-        ctx.fillText(`x${scoreMult} STREAK!`, 12, 50);
+        ctx.textAlign = "left";
+        ctx.fillText(`x${scoreMult} STREAK!`, 8, 55);
     }
 
     // "Press E" canvas hint when boss is defeated and waiting for input
@@ -776,7 +776,7 @@ function loadData() {
     togglesound = GameData.Sound;
     const isMuted = GameData.muted ?? false;
     Object.values(Sounds).forEach(sound => { sound.muted = isMuted; });
-    SoundMuteButton.style.backgroundImage = isMuted ? "url('../img/Mute1.png')" : "url('../img/Sound1.png')";
+    SoundMuteButton.style.backgroundImage = isMuted ? "url('img/Mute1.png')" : "url('img/Sound1.png')";
 
     // Update slider UI
     MusicSlider.value = GameData.musicVolume;

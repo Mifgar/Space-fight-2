@@ -28,6 +28,7 @@ let gameRunning = true;
 let score = 0;
 let scoreMult = 1;
 let killStreak = 0;
+let currentKills = 0;
 
 // Wave system
 const maxWaves = 10;
@@ -85,7 +86,6 @@ const GameData = {
     Sound: togglesound,
     muted: false,
     TotalKills: 0,
-    currentKills: 0,
     BestScore: 0,
 };
 
@@ -150,7 +150,7 @@ restartBtn.addEventListener("click", () => {
   document.getElementById("canvas").style.filter = "none";
   gameRunning = true;
   resetGame();
-  startRound();
+  startRound(true);
 }, { passive: true });
 
 function startGame() {
@@ -166,6 +166,7 @@ function startGame() {
 
 function showMainMenu() {
     document.getElementById("MainMenu").classList.remove("hidden");
+    document.getElementById("startMenu").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "blur(5px)";
     gameRunning = false;
     pauseTypewriter();
@@ -227,6 +228,9 @@ settingsBtn.onclick = function () {
 };
 
 backBtn.onclick = function () {
+    if (gameOver) {
+        document.getElementById("MainMenu").classList.add("hidden");
+    }
     document.getElementById("settingsMenu").classList.add("hidden");
     inSettings = false;
 };
@@ -244,7 +248,7 @@ function ESCAPE_PRESSED() {
         document.getElementById("canvas").style.filter = "none";
         gameRunning = true;
         resumeTypewriter();
-        startRound();
+        startRound(false);
     }
 }
 
@@ -312,7 +316,7 @@ SoundMuteButton.onclick = function () { toggleSound(); };
 document.getElementById("SettingsButton").onclick = function () {
     showMainMenu();
     document.getElementById("settingsMenu").classList.remove("hidden");
-    if (gameOver) document.getElementById("startMenu").classList.add("hidden");
+    if (gameOver) {document.getElementById("startMenu").classList.add("hidden")};
     inSettings = true;
 };
 
@@ -343,13 +347,14 @@ startBtn.onclick = function () {
     document.getElementById("MainMenu").classList.add("hidden");
     document.getElementById("canvas").style.filter = "none";
     gameRunning = true;
-    startRound();
+    startRound(false);
     resumeTypewriter();
 };
 
 // Resets all game state for a clean new run — called every time Start is pressed
 function resetGame() {
     document.getElementById("gameOverScreen").style.display = "none";
+    gameOver = false;
     currentWave = 1;
     boss = null;
     bossActivitys = false;
@@ -360,6 +365,7 @@ function resetGame() {
     score = 0;
     scoreMult = 1;
     killStreak = 0;
+    currentKills = 0;
     player.health = player.maxhealth;
     player.speed = 5;
     player.invincible = false;
@@ -377,23 +383,26 @@ function resetGame() {
     boss_Shot_Interval = null;
 }
 
-function startRound() {
+function startRound(startFresh) {
     if (!alreadyExecuted) {
         // First run: create all intervals and kick off wave 1
-        Sounds.music.play();
         setInterval(update, 1000 / 25);
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
         setInterval(checkCollision, 1000 / 25);
         Shot_Interval = setInterval(createShots, Shot_Cooldown);
         PowerUp_Interval = setInterval(createPowerup, PowerUp_Cooldown);
         alreadyExecuted = true;
-    } else {
+        startWave();
+    } else if (startFresh) {
         // Resume from pause OR new game after death — wave is already running or reset by startBtn
-        Sounds.music.play();
+        clearInterval(Ufo_Interval);
+        Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
+        startWave();
+    } else {
         clearInterval(Ufo_Interval);
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
     }
-    startWave();
+    Sounds.music.play();
     toggleMobileLayout();
 }
 
@@ -484,7 +493,6 @@ function damagePlayer() {
 function handlePlayerDeath() {
   Sounds.death.play();
   gameRunning = false;
-  currentKills = 0;
   showGameOverScreen(false);
   gameOver = true;
 }
@@ -497,7 +505,7 @@ function showGameOverScreen(isVictory) {
   document.getElementById("goTitle").textContent = isVictory ? "VICTORY!" : "GAME OVER";
   document.getElementById("goScore").textContent = "Score: " + score;
   document.getElementById("goBestScore").textContent = "Best: " + GameData.BestScore;
-  document.getElementById("goKills").textContent = "Kills: " + GameData.currentKills;
+  document.getElementById("goKills").textContent = "Kills: " + currentKills;
   document.getElementById("goWave").textContent = isVictory
       ? "All " + maxWaves + " waves cleared!"
       : "Wave " + currentWave + " of " + maxWaves;
@@ -532,7 +540,7 @@ function checkCollision() {
             shots = shots.filter(s => s !== shot);
             if (hitUfo.health <= 0) {
                 GameData.TotalKills++;
-                GameData.currentKills++;
+                currentKills++;
                 killStreak++;
                 scoreMult = Math.min(1 + Math.floor(killStreak / 5), 5);
                 hitUfo.img = _boomImg;

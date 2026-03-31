@@ -97,3 +97,15 @@ This project taught me things I would not have gotten from just reading about th
 - How **browser audio** works — autoplay restrictions, cloning audio nodes, handling multiple channels
 - How to design for **mobile browsers** — touch events, safe area insets, scaling a canvas to fit any screen
 - Why **separating concerns** matters — keeping rendering, logic, input, and UI in separate places makes the code much easier to work with
+
+---
+
+## Ideas for the Future
+
+Things I want to add when I get to them:
+
+- **Upgrade system** — the main missing piece right now. Bosses are balanced around the player getting stronger over time, so this would fix the difficulty curve completely
+- **In-game tutorial** — a short hint overlay at the start that shows the controls, so new players don't have to read them separately
+- **Better visuals** — improved sprites, textures, and models to make the game look more polished overall
+- **Visual effects** — things like explosions, hit flashes, and screen shake to make the game feel more alive
+- **Online leaderboard** — a scoreboard where players can see each other's high scores through Netlify (if technically feasible)

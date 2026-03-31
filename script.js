@@ -1,10 +1,14 @@
 let inSettings = false;
 let alreadyExecuted = false;
-let bossJustDefeated = false; // Tracks if we already showed the "press E" hint this wave
+let bossJustDefeated = false; // True once the "press E" hint has been shown for this wave
+let waitingForBoss = false;   // True while the 30s countdown to boss arrival is running
+let narrativeTimeouts = [];
+let powerupTimeout = null;
+let powerupEndTime = 0;
 
 let gameOver = false;
 
-// Explicit DOM references — no more implicit ID globals
+// All DOM references captured upfront — avoids repeated getElementById calls throughout the code
 const Handy_Oben = document.getElementById("Handy_Oben");
 const Handy_Unten = document.getElementById("Handy_Unten");
 const Handy_shot = document.getElementById("Handy_shot");
@@ -15,6 +19,7 @@ const startBtn = document.getElementById("startBtn");
 const settingsBtn = document.getElementById("settingsBtn");
 const backBtn = document.getElementById("backBtn");
 const restartBtn = document.getElementById("restartBtn");
+const nextWaveBtn = document.getElementById("nextWaveBtn");
 
 let KEY_SPACE = false;
 let KEY_UP = false;
@@ -22,7 +27,7 @@ let KEY_DOWN = false;
 let KEY_ESCAPE = false;
 let canvas;
 let ctx;
-let rafId = null; // Stores the requestAnimationFrame id so it can be cancelled if needed
+let rafId = null; // Holds the requestAnimationFrame ID in case rendering needs to be stopped
 let backgroundImage = new Image();
 let gameRunning = true;
 let score = 0;
@@ -34,7 +39,7 @@ let currentKills = 0;
 const maxWaves = 10;
 let currentWave = 1;
 
-// All intervals declared upfront — no more implicit globals
+// All interval IDs declared at the top — makes them easy to clear from anywhere in the code
 let Ufo_Interval;
 let Shot_Interval;
 let PowerUp_Interval;
@@ -77,6 +82,7 @@ Sounds.hit.volume = 0.4;
 Sounds.button.volume = 0.4;
 Sounds.death.volume = 0.45;
 
+// Central object for all persistent data — saved to localStorage whenever something changes
 const GameData = {
     musicVolume: Sounds.music.volume,
     shotVolume: Sounds.shot.volume,
@@ -140,7 +146,7 @@ Handy_Unten.addEventListener("mouseup", () => { KEY_DOWN = false; }, { passive: 
 Handy_shot.addEventListener("mousedown", () => { KEY_SPACE = true; }, { passive: true });
 Handy_shot.addEventListener("mouseup", () => { KEY_SPACE = false; }, { passive: true });
 
-// Button sounds — declared once here, not inside showMainMenu (that caused stacking)
+// Button sounds registered here once — adding them inside a repeatedly called function would stack up duplicates
 startBtn.addEventListener("click", () => { Sounds.button.play(); }, { passive: true });
 settingsBtn.addEventListener("click", () => { Sounds.button.play(); }, { passive: true });
 backBtn.addEventListener("click", () => { Sounds.button.play(); }, { passive: true });
@@ -153,6 +159,21 @@ restartBtn.addEventListener("click", () => {
   startRound(true);
 }, { passive: true });
 
+nextWaveBtn.addEventListener("click", () => {
+    Sounds.button.play();
+    nextWave();
+}, { passive: true });
+
+// Wrapper around setTimeout that tracks its ID so all story delays can be cancelled at once (e.g. on pause or reset)
+function narrativeDelay(fn, delay) {
+    const id = setTimeout(() => {
+        narrativeTimeouts = narrativeTimeouts.filter(t => t !== id);
+        fn();
+    }, delay);
+    narrativeTimeouts.push(id);
+    return id;
+}
+
 function startGame() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
@@ -162,6 +183,10 @@ function startGame() {
     loadData();
     loadImages();
     draw();
+    if ('ontouchstart' in window) {
+        MobileLayoutcheck.checked = true;
+        toggleMobileLayout();
+    }
 }
 
 function showMainMenu() {
@@ -169,6 +194,10 @@ function showMainMenu() {
     document.getElementById("startMenu").classList.remove("hidden");
     document.getElementById("canvas").style.filter = "blur(5px)";
     gameRunning = false;
+    narrativeTimeouts.forEach(clearTimeout);
+    narrativeTimeouts = [];
+    clearTimeout(powerupTimeout);
+    powerupTimeout = null;
     pauseTypewriter();
 
     Handy_Oben.style.display = "none";
@@ -178,8 +207,10 @@ function showMainMenu() {
 
 function startWave() {
     typewriterLog(`Wave ${currentWave} started! Boss will arrive shortly...`, 100);
+    waitingForBoss = true;
 
-    setTimeout(() => {
+    narrativeDelay(() => {
+        waitingForBoss = false;
         boss = createBossForWave(currentWave);
         bossJustDefeated = false;
 
@@ -190,20 +221,24 @@ function startWave() {
         }, boss.shotCooldown);
 
         typewriterLog(`${boss.name} has arrived!`, 100, 5000);
-    }, 6000); //tune this to 30000
+    }, 30000);
 }
 
 function nextWave() {
-    // Clean up current boss before moving on
+    nextWaveBtn.classList.add("hidden");
+    narrativeTimeouts.forEach(clearTimeout);
+    narrativeTimeouts = [];
     clearInterval(boss_Shot_Interval);
     boss_Shot_Interval = null;
     boss = null;
     bossActivitys = false;
     bossJustDefeated = false;
+    waitingForBoss = false;
 
     if (currentWave < maxWaves) {
         currentWave++;
         UfoHealth++;
+        UfoSpeed += 0.5; // UFOs get slightly faster every wave
         currentUfo_Cooldown = Ufo_Cooldown;
         clearInterval(Ufo_Interval);
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
@@ -242,12 +277,29 @@ function ESCAPE_PRESSED() {
     } else if (gameRunning) {
         showMainMenu();
         gameRunning = false;
-    } else if (!gameRunning && !inSettings) {
+    } else if (!gameRunning && !inSettings && !gameOver) {
         document.getElementById("MainMenu").classList.add("hidden");
 
         document.getElementById("canvas").style.filter = "none";
         gameRunning = true;
         resumeTypewriter();
+        if (player.powerup) {
+            const remaining = Math.max(0, powerupEndTime - Date.now());
+            powerupTimeout = setTimeout(() => { player.powerup = false; }, remaining);
+        }
+        // Boss timer was cancelled while paused — restart it without replaying the wave announcement
+        if (waitingForBoss) {
+            narrativeDelay(() => {
+                waitingForBoss = false;
+                boss = createBossForWave(currentWave);
+                bossJustDefeated = false;
+                clearInterval(boss_Shot_Interval);
+                boss_Shot_Interval = setInterval(() => {
+                    if (bossActivitys) boss.shoot();
+                }, boss.shotCooldown);
+                typewriterLog(`${boss.name} has arrived!`, 100, 5000);
+            }, 30000);
+        }
         startRound(false);
     }
 }
@@ -306,7 +358,8 @@ TypeSoundSlider.addEventListener("input", updateVolume, { passive: true });
 function toggleSound() {
     togglesound = !togglesound;
     Object.values(Sounds).forEach(sound => { sound.muted = !togglesound; });
-    SoundMuteButton.style.backgroundImage = togglesound ? "url('img/Sound1.png')" : "url('img/Mute1.png')";
+    document.getElementById("svgSound").style.display = togglesound ? "block" : "none";
+    document.getElementById("svgMute").style.display  = togglesound ? "none"  : "block";
     GameData.Sound = togglesound;
     GameData.muted = !togglesound;
     saveData();
@@ -349,16 +402,22 @@ startBtn.onclick = function () {
     gameRunning = true;
     startRound(false);
     resumeTypewriter();
+    if (player.powerup) {
+        const remaining = Math.max(0, powerupEndTime - Date.now());
+        powerupTimeout = setTimeout(() => { player.powerup = false; }, remaining);
+    }
 };
 
-// Resets all game state for a clean new run — called every time Start is pressed
+// Resets all game state for a fresh run — called when the player restarts after game over
 function resetGame() {
     document.getElementById("gameOverScreen").style.display = "none";
+    nextWaveBtn.classList.add("hidden");
     gameOver = false;
     currentWave = 1;
     boss = null;
     bossActivitys = false;
     bossJustDefeated = false;
+    waitingForBoss = false;
     shots = [];
     ufos = [];
     powerups = [];
@@ -373,19 +432,25 @@ function resetGame() {
     player.powerup = false;
     lastPowerupState = false;
     UfoHealth = 1;
-    UfoSpeed = 10;
+    UfoSpeed = 10; // Reset to base — nextWave adds 0.5 per wave
     currentUfo_Cooldown = Ufo_Cooldown;
     Shot_Cooldown = 500;
     ShotSpeed = 10;
     Sounds.shot.playbackRate = 1;
 
+    narrativeTimeouts.forEach(clearTimeout);
+    narrativeTimeouts = [];
+    clearTimeout(powerupTimeout);
+    powerupTimeout = null;
+    powerupEndTime = 0;
     clearInterval(boss_Shot_Interval);
     boss_Shot_Interval = null;
 }
 
 function startRound(startFresh) {
     if (!alreadyExecuted) {
-        // First run: create all intervals and kick off wave 1
+        // First run only — alreadyExecuted prevents duplicate intervals on restart.
+        // Logic at fixed 25fps (setInterval), rendering as fast as the screen allows (requestAnimationFrame).
         setInterval(update, 1000 / 25);
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
         setInterval(checkCollision, 1000 / 25);
@@ -394,7 +459,7 @@ function startRound(startFresh) {
         alreadyExecuted = true;
         startWave();
     } else if (startFresh) {
-        // Resume from pause OR new game after death — wave is already running or reset by startBtn
+        // Restart after death — resets the UFO interval and starts a fresh wave
         clearInterval(Ufo_Interval);
         Ufo_Interval = setInterval(createUfos, currentUfo_Cooldown);
         startWave();
@@ -418,6 +483,7 @@ function createUfos() {
             speed: Math.random() * UfoSpeed + 5
         };
         ufos.push(ufo);
+        // Each spawn shortens the interval by 5% (min 500ms) — pressure builds naturally over time
         if (currentUfo_Cooldown > 500) {
             currentUfo_Cooldown *= 0.95;
         }
@@ -444,13 +510,13 @@ function createShots() {
 
 function createPowerup() {
     if (gameRunning) {
-        // 30% chance of a health drop, 70% speed boost
-        const type = Math.random() < 0.3 ? "health" : "shotSpeed";
+        // 10% chance of a health drop, 90% chance of a speed boost
+        const type = Math.random() < 0.1 ? "health" : "shotSpeed";
         let powerup = {
             x: 1300,
             y: Math.random() * 750,
-            width: 50,
-            height: 50,
+            width: type === "health" ? 20 : 35,
+            height: type === "health" ? 20 : 35,
             img: type === "health" ? heartImage : _crateImg,
             type: type,
         };
@@ -461,7 +527,7 @@ function createPowerup() {
     }
 }
 
-// Helper: AABB rectangle overlap check — removes duplicated collision math
+// AABB collision check — reused for player/UFO, shot/UFO, shot/boss, and powerup pickup
 function rectOverlap(a, b) {
     return a.x < b.x + b.width &&
            a.x + a.width > b.x &&
@@ -469,7 +535,7 @@ function rectOverlap(a, b) {
            a.y + a.height > b.y;
 }
 
-// Helper: applies damage to player with invincibility + blink — was copy-pasted twice before
+// Damages the player and starts a 1-second invincibility + blink window to prevent instant death chains
 function damagePlayer() {
     player.health--;
     scoreMult = 1;
@@ -528,8 +594,7 @@ function checkCollision() {
         }
     });
 
-    // Player shots — checked in its own loop so boss is always hittable,
-    // even when no UFOs are on screen (was a hidden bug: shots were inside ufos.forEach)
+    // Shots handled in their own loop — keeps the boss hittable even when no UFOs are on screen
     shots.forEach(function (shot) {
         // Shot hits UFO
         const hitUfo = ufos.find(ufo => rectOverlap(shot, ufo));
@@ -542,17 +607,18 @@ function checkCollision() {
                 GameData.TotalKills++;
                 currentKills++;
                 killStreak++;
+                // Score multiplier grows every 5 kills in a row, capped at 5× — rewards offensive play
                 scoreMult = Math.min(1 + Math.floor(killStreak / 5), 5);
                 hitUfo.img = _boomImg;
                 hitUfo.speed = 0;
                 // 10% chance to drop a pickup at the kill location
-                if (Math.random() < 0.05) {
-                    const dropType = Math.random() < 0.4 ? "health" : "speed";
+                if (Math.random() < 0.10) {
+                    const dropType = Math.random() < 0.4 ? "health" : "shotSpeed";
                     powerups.push({
                         x: hitUfo.x,
                         y: hitUfo.y,
-                        width: 35,
-                        height: 35,
+                        width: dropType === "health" ? 20 : 35,
+                        height: dropType === "health" ? 20 : 35,
                         img: dropType === "health" ? heartImage : _crateImg,
                         type: dropType,
                     });
@@ -590,22 +656,23 @@ function checkCollision() {
     powerups.forEach(function (powerup) {
         if (rectOverlap(player, powerup)) {
             powerups = powerups.filter(p => p !== powerup);
-            player.powerup = true;
-            ShotSpeed *= 1.5;
+    
             if (powerup.type === "health") {
-              if (player.health < player.maxhealth) {
-                  player.health++;
-                  typewriterLog("1 Heart restored!", 80, 3000);
-              } else {
-                  typewriterLog("Health already full!", 80, 2000);
-              }
-          } else {
-              player.powerup = true;
-              ShotSpeed = 15; // fixed value — was *= 1.5 which accumulated on repeat pickups
-              setTimeout(() => { player.powerup = false; }, 5000);
-              typewriterLog("Speed boost! 5 seconds!", 80, 3000);
-          }
-            setTimeout(() => { player.powerup = false; }, 5000);
+                if (player.health < player.maxhealth) {
+                    player.health++;
+                    typewriterLog("1 Heart restored!", 80, 3000);
+                } else {
+                    typewriterLog("Health already full!", 80, 2000);
+                }
+            } else {
+                player.powerup = true;
+                ShotSpeed = 15;
+                lastPowerupState = false;
+                clearTimeout(powerupTimeout);
+                powerupEndTime = Date.now() + 5000;
+                powerupTimeout = setTimeout(() => { player.powerup = false; }, 5000);
+                typewriterLog("Speed boost! 5 seconds!", 80, 3000);
+            }
         }
     });
 }
@@ -621,6 +688,7 @@ function update() {
             ufo.x -= ufo.speed;
         });
 
+        // Only react to powerup state changes — avoids resetting the interval every single frame
         if (player.powerup !== lastPowerupState) {
             clearInterval(Shot_Interval);
             if (player.powerup) {
@@ -654,10 +722,11 @@ function update() {
             bossJustDefeated = true;
             const bonus = currentWave * 100;
             score += bonus;
+            nextWaveBtn.classList.remove("hidden");
             if (currentWave < maxWaves) {
-                typewriterLog(`${boss.name} defeated! +${bonus} pts. Press E for next wave.`, 80, 8000);
+                typewriterLog(`${boss.name} defeated! +${bonus} pts. Keep shooting or advance!`, 80, 8000);
             } else {
-                typewriterLog(`${boss.name} defeated! +${bonus} pts. Press E for results!`, 80, 10000);
+                typewriterLog(`${boss.name} defeated! +${bonus} pts. Press E or tap to see results!`, 80, 10000);
             }
         }
     }
@@ -672,10 +741,10 @@ function loadImages() {
 const heartImage = new Image();
 heartImage.src = 'img/heart.png';
 
-// Pre-load all sprites once at startup — prevents new Image() on every enemy/shot spawn
+// All sprites preloaded once — avoids stutter when new enemies or shots are spawned mid-game
 const _ufoImg = new Image();       _ufoImg.src = 'img/ufo.png';
 const _boomImg = new Image();      _boomImg.src = 'img/boom.png';
-const _crateImg = new Image();     _crateImg.src = 'img/crate.jpg';
+const _crateImg = new Image();     _crateImg.src = 'img/crate.png';
 const _playerShotImg = new Image(); _playerShotImg.src = 'img/shot.png';
 
 
@@ -706,7 +775,7 @@ function draw() {
   }
     drawHearts();
 
-    // Player draw moved before RAF — blink check is now a simple conditional, not an early return
+    // Skip drawing the player on blink frames — creates the visible flash effect after taking damage
     if (!player.invincible || !player.blink) {
         ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
     }
@@ -733,7 +802,6 @@ function draw() {
         ctx.fillText(`x${scoreMult} STREAK!`, 8, 55);
     }
 
-    // "Press E" canvas hint when boss is defeated and waiting for input
     if (bossJustDefeated && boss && boss.defeated) {
         const hint = currentWave < maxWaves ? "Press E for next wave" : "Press E for results";
         ctx.font = "bold 20px 'Pixelify Sans', monospace";
@@ -772,11 +840,12 @@ function loadData() {
     Sounds.button.volume = GameData.menuVolume;
     typeSound.forEach(sound => { sound.volume = GameData.typeVolume; });
 
-    // Restore mute state — was reading GameData.muted which didn't exist before
+    // Restore mute state from saved data
     togglesound = GameData.Sound;
     const isMuted = GameData.muted ?? false;
     Object.values(Sounds).forEach(sound => { sound.muted = isMuted; });
-    SoundMuteButton.style.backgroundImage = isMuted ? "url('img/Mute1.png')" : "url('img/Sound1.png')";
+    document.getElementById("svgSound").style.display = isMuted ? "none"  : "block";
+    document.getElementById("svgMute").style.display  = isMuted ? "block" : "none";
 
     // Update slider UI
     MusicSlider.value = GameData.musicVolume;

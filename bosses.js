@@ -9,7 +9,7 @@ let boss = null;
 const _shotImg = new Image();
 _shotImg.src = 'img/shot.png';
 
-// Base Boss class with basic properties and methods
+// Base class shared by all 10 bosses — each subclass only sets its own stats via super()
 class Boss {
     constructor(name, speed, width, height, health, shotspeed, shotCooldown, magazine, FullMagazine, ReloadCooldown, imgSrc, minInterval, maxInterval) {
         this.name = name;
@@ -44,6 +44,7 @@ class Boss {
         this.scheduleDirectionChange();
     }
 
+    // Schedules the next direction flip — faster bosses change direction more often
     scheduleDirectionChange() {
         const interval = this.maxInterval - (this.speed / 10) * (this.maxInterval - this.minInterval);
         const randomInterval = interval * (Math.random() * 0.5 + 0.75);
@@ -58,6 +59,7 @@ class Boss {
         this.direction = Math.random() < 0.5 ? 1 : -1;
     }
 
+    // Checks if a player shot is heading toward the boss and steers away from it
     detectAndDodgeShots(shots) {
         const now = Date.now();
         if (now - this.lastDodge < this.dodgeCooldown) return;
@@ -100,6 +102,7 @@ class Boss {
         this.magazine -= 1;
         this.lastShotTime = now;
 
+        // Reload after emptying magazine — slight randomness keeps burst size unpredictable
         if (this.magazine <= 0 && !this.reloading) {
             this.reloading = true;
             setTimeout(() => {
@@ -117,6 +120,7 @@ class Boss {
     }
 
     update(shots) {
+        // Slide-in phase: boss enters from the right edge before combat begins
         if (this.entering) {
             this.x -= this.enteringSpeed;
             if (this.x <= this.entryX) {
@@ -165,7 +169,7 @@ class Boss {
         ctx.fillStyle = "#222";
         ctx.fillRect(barX, barY, barW, barH);
 
-        // HP fill — green → yellow → red
+        // Health bar color shifts green → yellow → red as the boss takes damage
         ctx.fillStyle = ratio > 0.5 ? "#4cff4c" : ratio > 0.25 ? "#ffbb00" : "#ff4444";
         ctx.fillRect(barX, barY, barW * ratio, barH);
 
@@ -208,61 +212,74 @@ class Shot {
     }
 }
 
-// Boss definitions
+// ─── Boss definitions ─────────────────────────────────────────────────────────
+// Each class only passes its stats to the base class constructor.
+// speed | width | height | health | shotSpeed | shotCooldown | magazine | fullMag | reloadMs | img | minDirMs | maxDirMs
+
+// Wave 1 — slow and forgiving, introduces the boss format
 class Goliath extends Boss {
     constructor() {
         super("Goliath", 1, 435/2, 245/2, 50, 5, 1500, 10, 10, 3000, "img/Goliath.png", 4000, 6000);
     }
 }
 
+// Wave 2 — same speed as Goliath but shoots in small bursts
 class Crawler extends Boss {
     constructor() {
         super("Crawler", 1, 449/2, 187/2, 75, 4, 1800, 3, 3, 2500, "img/Crawler.png", 4000, 6000);
     }
 }
 
+// Wave 3 — more health and faster movement, first real wall of HP
 class Bulwark extends Boss {
     constructor() {
         super("Bulwark", 3, 460/2, 246/2, 150, 4, 2000, 5, 5, 4000, "img/Bulwark.png", 3000, 5000);
     }
 }
 
+// Wave 4 — very fast, changes direction quickly, fires rapid bursts
 class Blitzor extends Boss {
     constructor() {
         super("Blitzor", 7.5, 411/2, 216/2, 100, 7, 1000, 7, 7, 2000, "img/Blitzor.png", 2000, 5000);
     }
 }
 
+// Wave 5 — small and fast, extremely quick shots at close range
 class Dart extends Boss {
     constructor() {
         super("Dart", 7.5, 374/2, 116/2, 75, 9, 600, 6, 6, 1500, "img/Dart.png", 2000, 5000);
     }
 }
 
+// Wave 6 — high HP tank with steady movement and consistent fire
 class Drifter extends Boss {
     constructor() {
         super("Drifter", 5, 453/2, 161/2, 250, 5, 1300, 5, 5, 2500, "img/Drifter.png", 3000, 4000);
     }
 }
 
+// Wave 7 — fastest boss so far, very rapid fire, hard to avoid
 class Wasp extends Boss {
     constructor() {
         super("Wasp", 10, 331/2, 133/2, 150, 10, 400, 4, 4, 1200, "img/Wasp.png", 1000, 4000);
     }
 }
 
+// Wave 8 — full-size, massive HP pool, slow but relentless
 class Juggernaut extends Boss {
     constructor() {
         super("Juggernaut", 3, 430/1, 276/1, 500, 3, 2500, 6, 6, 5000, "img/Juggernaut.png", 3000, 5000);
     }
 }
 
+// Wave 9 — fast with high HP, punishing shot rate
 class Phantom extends Boss {
     constructor() {
         super("Phantom", 5, 439/2, 253/2, 250, 6, 900, 5, 5, 2000, "img/Phantom.png", 3000, 4000);
     }
 }
 
+// Wave 10 — final boss: most HP, fast, rapid bursts, large hitbox
 class Vortex extends Boss {
     constructor() {
         super("Vortex", 7.5, 464/2, 320/2, 550, 7, 1100, 6, 6, 2200, "img/Vortex.png", 2000, 5000);

@@ -1,10 +1,11 @@
 let EventBoxTimeout = null;
 let typingActive = false;
-let typingPaused = false; // Set this to pause/resume the typewriter without cancelling it
+let typingPaused = false; // Pauses typing mid-message without losing progress (used when main menu opens)
 
 function pauseTypewriter() { typingPaused = true; }
 function resumeTypewriter() { typingPaused = false; }
 
+// Displays a message in the HUD with a typewriter effect, then hides it after hideDelay ms
 function typewriterLog(message, speed = 30, hideDelay = 5000) {
     const logBox = document.getElementById("eventLog");
     if (!logBox) return;
@@ -16,6 +17,7 @@ function typewriterLog(message, speed = 30, hideDelay = 5000) {
     clearTimeout(EventBoxTimeout);
     logBox.classList.remove("hidden");
 
+    // Unique Symbol per call — if a new message starts, the old typing loop sees a different token and stops
     const token = Symbol();
     typingActive = token;
 
@@ -24,7 +26,7 @@ function typewriterLog(message, speed = 30, hideDelay = 5000) {
     function type() {
         if (typingActive !== token) return;
 
-        // If paused, check again in 100ms without advancing
+        // Paused (e.g. menu open): wait and retry without advancing the character index
         if (typingPaused) {
             setTimeout(type, 100);
             return;

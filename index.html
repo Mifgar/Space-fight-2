@@ -77,20 +77,48 @@
             </div>
         </div>
 
-        <!-- Handy buttons ↓ -->
-        <div class="button-Layout">
-            <button id="SoundMuteButton"></button>
-            <button id="SettingsButton"></button>
-            <button id="FullscreenButton"></button>
-            <button id="Handy_Oben" class="mobile--layout blink--effect"></button>
-            <button id="Handy_Unten" class="mobile--layout blink--effect"></button>
-            <button id="Handy_shot" class="mobile--layout"></button>
-        </div>
-        <!-- Handy Buttons ↑ -->
-
         <h3 class="Event-Log hidden" id="eventLog"></h3>
         <h2 class="Landscape-advise">For the Best Experience please Rotate your Phone</h2>
-        <canvas id="canvas" width="1200" height="800"></canvas>
+        <div id="canvasWrapper">
+            <canvas id="canvas" width="1200" height="800"></canvas>
+            <div class="button-Layout">
+                <div class="top-right-btns">
+                    <button id="SoundMuteButton">
+                        <svg id="svgSound" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor" stroke="none" />
+                            <path d="M16.5 7.5a5 5 0 0 1 0 9" />
+                            <path d="M19.07 4.93a9 9 0 0 1 0 14.14" />
+                        </svg>
+                        <svg id="svgMute" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                            <path d="M3 9v6h4l5 5V4L7 9H3z" fill="currentColor" stroke="none" />
+                            <line x1="23" y1="9" x2="17" y2="15" />
+                            <line x1="17" y1="9" x2="23" y2="15" />
+                        </svg>
+                    </button>
+                    <button id="SettingsButton">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3" />
+                            <path
+                                d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" />
+                        </svg>
+                    </button>
+                    <button id="FullscreenButton">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3" />
+                        </svg>
+                    </button>
+                </div>
+                <button id="nextWaveBtn" class="hidden">Next Wave ›</button>
+                <button id="Handy_Oben" class="mobile--layout blink--effect"></button>
+                <button id="Handy_Unten" class="mobile--layout blink--effect"></button>
+                <button id="Handy_shot" class="mobile--layout"></button>
+            </div>
+        </div>
     </div>
 
 

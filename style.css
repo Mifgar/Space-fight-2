@@ -127,19 +127,18 @@ canvas {
 
 #nextWaveBtn {
     position: absolute;
-    bottom: 3%;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 12%;
+    right: 1%;
     z-index: 5;
     background: transparent;
     border: 2px solid #4de2f2;
     color: #4de2f2;
     font-family: 'Pixelify Sans', monospace;
-    font-size: clamp(0.85rem, 1.8vw, 1.1rem);
+    font-size: clamp(0.2rem, 1.5vh, 1.1rem);
     letter-spacing: 2px;
-    padding: 8px 28px;
+    padding: 4px 14px;
     transition: background 0.2s, color 0.2s;
-    animation: pulse-border 1.2s ease-in-out infinite;
+    animation: pulse-border 1.2s ease-in-out infinite
 }
 
 #nextWaveBtn:hover {

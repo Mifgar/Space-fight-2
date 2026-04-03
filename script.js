@@ -178,6 +178,10 @@ function startGame() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
     canvas.style.imageRendering = "pixelated";
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = 1200 * dpr;
+    canvas.height = 800 * dpr;
+    ctx.scale(dpr, dpr);
     gameRunning = true;
     Sounds.music.loop = true;
     loadData();
